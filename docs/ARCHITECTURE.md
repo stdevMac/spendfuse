@@ -21,6 +21,7 @@ agent key (scenarios 7 and 8 do exactly that).
 | Scenarios | `src/agent/scenarios.ts` | The 8 attack and control scenarios (`SCENARIOS`, `runScenario`). |
 | Scripts | `src/scripts/*` | `setup-testnet`, `attack-demo`, `drill`, `status`, `lockdown`, `newkey`. |
 | Dashboard | `src/server/*`, `web/*` | Local web console (`npm run dashboard`): state, approval queue, incident feed, key proof, blocklist, saved runs, and token-gated owner or guardian actions. |
+| Hosted dashboard | `src/worker/*`, `wrangler.jsonc` | Cloudflare Worker serving a read-only copy at https://spendfuse.marcosmaceo.com: same `web/` front end and the same read-only JSON as `READONLY=1`, no keys. |
 
 Note: the base58 `canaryHash` in `src/scout/canary.ts` was written for an older contract interface
 (`request_transfer`) and is not on the payment path. The runtime uses the hex `canaryHash` in
@@ -330,6 +331,30 @@ so old records are never read again but their storage stays locked.
   requires a random per-process token in `x-spendfuse-token`, refuses cross-origin POSTs and
   non-JSON bodies, caps body size, validates ids, and sends a strict CSP and related headers.
   `READONLY=1` disables every POST route. These are covered by `test/server.test.ts`.
+- Shared core: validation, security headers, the view cache (`TtlCache`, `cachedViews`), the
+  `/api/state` body (`buildState`), run summaries and the SSE diff (`Feed`) are in
+  `src/server/core.ts`, and the live views in `src/server/views.ts`. Neither imports `node:*`, so
+  the Worker uses the same code.
+
+### Hosted read-only dashboard (`npm run web:deploy`)
+
+`src/worker/index.ts` is a Cloudflare Worker (config in `wrangler.jsonc`; vars `NETWORK`,
+`OWNER_ID`, `VAULT_ID`, no secrets). Every request goes through the Worker first
+(`run_worker_first`) so static files from `web/` get the same CSP and headers.
+`src/worker/handler.ts` (`createHandler`) is a pure `Request -> Response` function tested in
+`test/worker.test.ts`, including a check that its `/api/state` equals the Node server's in
+READONLY mode.
+
+- API: `GET /api/state`, `/api/activity`, `/api/runs`, `/api/runs/<id>`, `/api/events`. The mode is
+  always `{ readonly: true, actions: false }`, so the front end shows "read-only" and no action
+  buttons. `POST`, `PUT`, `PATCH`, `DELETE` get `403 read-only mode`; other methods get `405`.
+- Chain reads go to public testnet RPC through near-api-js and a 5 s in-isolate cache shared by
+  all requests (`TtlCache`).
+- Runs: only the recorded proofs in `docs/proofs/live-run-*.json`, imported at build time
+  (`src/worker/runs.ts`); canary ids in them are already redacted.
+- `/api/events` is a bounded SSE stream: it polls every 5 s, sends `status` / `activity` frames,
+  and closes after about 25 s; `EventSource` reconnects after the `retry: 5000` hint. No
+  connection is held open indefinitely.
 
 ## Scripts
 

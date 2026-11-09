@@ -1,44 +1,44 @@
 // app.ts - zero-dependency dashboard server: static web/ files, read-only JSON API, SSE feed and
 // token-gated owner/guardian actions. createDashboard() takes an injected Backend so tests run offline.
+// Route logic shared with the Cloudflare Worker (src/worker/index.ts) lives in core.ts.
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer } from 'node:http';
 import type { IncomingMessage, Server, ServerResponse } from 'node:http';
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { extname, join, resolve, sep } from 'node:path';
 import { REPO_ROOT } from '../lib/env.ts';
-import { EXPLORER, explorer, validateAccountId } from '../lib/near.ts';
-import { AGENT_METHODS } from '../lib/spendfuse.ts';
-import type { ConfigView, LogEntry, Stats } from '../lib/types.ts';
-import type { ActionName, ActionOutcome, Backend, KeyJson } from './backend.ts';
+import { explorer } from '../lib/near.ts';
+import type { ActionName, ActionOutcome, Backend } from './backend.ts';
 import { ACTION_NAMES } from './backend.ts';
+import {
+  buildState,
+  cachedViews,
+  checkReason,
+  errMsg,
+  Feed,
+  HttpError,
+  isAccountId,
+  isRequestId,
+  isRunId,
+  isTxHash,
+  jsonReplacer,
+  parseActivityQuery,
+  READONLY_MESSAGE,
+  RUN_ID_RE,
+  runSummary,
+  SECURITY_HEADERS,
+  sortRuns,
+  sseFrame,
+  TtlCache,
+} from './core.ts';
+
+export { CSP, checkReason, isAccountId, isRequestId, isTxHash, keyProof, TtlCache } from './core.ts';
+export type { KeyProof } from './core.ts';
 
 export const DEFAULT_PORT = 8787;
 export const DEFAULT_HOST = '127.0.0.1';
 export const WEB_ROOT = join(REPO_ROOT, 'web');
 export const RUNS_DIR = join(REPO_ROOT, '.spendfuse', 'runs');
-
-export const CSP = [
-  "default-src 'self'",
-  "script-src 'self'",
-  "style-src 'self'",
-  "img-src 'self' data:",
-  "connect-src 'self'",
-  "font-src 'self'",
-  "object-src 'none'",
-  "base-uri 'none'",
-  "form-action 'none'",
-  "frame-ancestors 'none'",
-].join('; ');
-
-const SECURITY_HEADERS: Record<string, string> = {
-  'content-security-policy': CSP,
-  'x-content-type-options': 'nosniff',
-  'x-frame-options': 'DENY',
-  'referrer-policy': 'no-referrer',
-  'cross-origin-opener-policy': 'same-origin',
-  'cross-origin-resource-policy': 'same-origin',
-  'permissions-policy': 'camera=(), microphone=(), geolocation=()',
-};
 
 const CONTENT_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -53,50 +53,16 @@ const CONTENT_TYPES: Record<string, string> = {
 
 export const MAX_BODY = 4096;
 const MAX_RUN_BYTES = 2 * 1024 * 1024;
-const MAX_RUNS_LISTED = 200;
-const REASON_MAX_BYTES = 256;
-const HASH_RE = /^[1-9A-HJ-NP-Za-km-z]{43,44}$/;
-const RUN_ID_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/;
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', '::1', 'localhost']);
 const LOOPBACK_HOST_HEADERS = new Set(['127.0.0.1', 'localhost', '[::1]']);
 
-// ---------------------------------------------------------------- validation
-/** Decimal u64 without leading zeros. */
-export function isRequestId(v: unknown): v is string {
-  return typeof v === 'string' && /^(0|[1-9]\d{0,19})$/.test(v) && BigInt(v) < 1n << 64n;
-}
-export function isAccountId(v: unknown): v is string {
-  return typeof v === 'string' && validateAccountId(v) === null;
-}
-/** Optional free-text reason: printable, at most 256 UTF-8 bytes. */
-export function checkReason(v: unknown): string | undefined | Error {
-  if (v === undefined || v === null || v === '') return undefined;
-  if (typeof v !== 'string') return new Error('reason must be a string');
-  // eslint-disable-next-line no-control-regex
-  if (/[\u0000-\u001f\u007f]/.test(v)) return new Error('reason has control characters');
-  if (Buffer.byteLength(v, 'utf8') > REASON_MAX_BYTES) return new Error('reason is longer than 256 bytes');
-  return v;
-}
-export const isTxHash = (v: unknown): v is string => typeof v === 'string' && HASH_RE.test(v);
-
 // ---------------------------------------------------------------- small helpers
-class HttpError extends Error {
-  readonly status: number;
-  constructor(status: number, message: string) {
-    super(message);
-    this.status = status;
-  }
-}
-
-const jsonReplacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? v.toString() : v);
-
 function sendJson(res: ServerResponse, status: number, body: unknown): void {
   const text = JSON.stringify(body, jsonReplacer);
   res.writeHead(status, { ...SECURITY_HEADERS, 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
   res.end(text);
 }
 
-const errMsg = (err: unknown): string => (err instanceof Error ? err.message : String(err));
 
 function readBody(req: IncomingMessage, max: number): Promise<string> {
   return new Promise((ok, fail) => {
@@ -129,28 +95,6 @@ function readBody(req: IncomingMessage, max: number): Promise<string> {
   });
 }
 
-/** Promise cache with a TTL; in-flight requests are shared, failures are not kept. */
-export class TtlCache {
-  readonly ttlMs: number;
-  readonly #map = new Map<string, { at: number; p: Promise<unknown> }>();
-  constructor(ttlMs: number) {
-    this.ttlMs = ttlMs;
-  }
-  get<T>(key: string, fn: () => Promise<T>): Promise<T> {
-    const now = Date.now();
-    const hit = this.#map.get(key);
-    if (hit && now - hit.at < this.ttlMs) return hit.p as Promise<T>;
-    const p = fn();
-    this.#map.set(key, { at: now, p });
-    p.catch(() => {
-      if (this.#map.get(key)?.p === p) this.#map.delete(key);
-    });
-    return p;
-  }
-  clear(): void {
-    this.#map.clear();
-  }
-}
 
 // ---------------------------------------------------------------- options
 export interface DashboardOptions {
@@ -177,25 +121,6 @@ export interface Dashboard {
   close(): Promise<void>;
 }
 
-export interface KeyProof {
-  accountId: string;
-  keys: KeyJson[];
-  fullAccess: number;
-  /** every key is a function-call key whose receiver is the vault and whose methods are agent methods */
-  fcOnly: boolean;
-  error: string | null;
-}
-
-export function keyProof(accountId: string, vaultId: string, keys: KeyJson[] | null, error: string | null = null): KeyProof {
-  const list = keys ?? [];
-  const agentSet = new Set<string>(AGENT_METHODS);
-  const fullAccess = list.filter((k) => k.fullAccess).length;
-  const fcOnly =
-    list.length > 0 &&
-    list.every((k) => !k.fullAccess && k.receiverId === vaultId && !!k.methodNames?.length && k.methodNames.every((m) => agentSet.has(m)));
-  return { accountId, keys: list, fullAccess, fcOnly, error };
-}
-
 // ---------------------------------------------------------------- server
 export function createDashboard(opts: DashboardOptions): Promise<Dashboard> {
   const { backend } = opts;
@@ -214,45 +139,15 @@ export function createDashboard(opts: DashboardOptions): Promise<Dashboard> {
   const heartbeatMs = opts.heartbeatMs ?? 15000;
   const log = opts.log ?? ((m: string) => console.log(m));
 
-  const c = {
-    config: () => cache.get('config', () => views.getConfig()),
-    stats: () => cache.get('stats', () => views.getStats()),
-    agents: () => cache.get('agents', () => views.listAllAgents()),
-    pending: () => cache.get('pending', () => views.getAllPending()),
-    activity: (before?: string, limit = 50) => cache.get(`activity:${before ?? ''}:${limit}`, () => views.getActivity(before, limit)),
-    blocklist: () => cache.get('blocklist', () => views.getBlocklist(0, 100)),
-    keys: (id: string) => cache.get(`keys:${id}`, () => views.listKeys(id)),
-  };
+  const c = cachedViews(views, cache);
 
   // ------------------------------------------------ /api/state
-  async function state(): Promise<Record<string, unknown>> {
-    const names = ['config', 'stats', 'agents', 'pending', 'activity', 'blocklist'] as const;
-    const settled = await Promise.allSettled([c.config(), c.stats(), c.agents(), c.pending(), c.activity(), c.blocklist()]);
-    const out: Record<string, unknown> = {};
-    const errors: Record<string, string> = {};
-    settled.forEach((s, i) => {
-      const name = names[i]!;
-      if (s.status === 'fulfilled') out[name] = s.value;
-      else {
-        out[name] = null;
-        errors[name] = errMsg(s.reason);
-      }
-    });
-    const agentIds = Array.isArray(out.agents) ? (out.agents as { agent_id: string }[]).map((a) => a.agent_id) : [];
-    const ids = [...new Set([...backend.proofAccounts, ...agentIds])].filter(isAccountId).slice(0, 10);
-    const proofs = await Promise.all(
-      ids.map(async (id) => {
-        try {
-          return keyProof(id, backend.vaultId, await c.keys(id));
-        } catch (err) {
-          return keyProof(id, backend.vaultId, null, errMsg(err));
-        }
-      }),
-    );
-    return {
+  const state = () =>
+    buildState({
+      c,
       vaultId: backend.vaultId,
       network: backend.network,
-      explorer: EXPLORER,
+      proofAccounts: backend.proofAccounts,
       mode: {
         readonly,
         actions: actionsEnabled,
@@ -260,12 +155,7 @@ export function createDashboard(opts: DashboardOptions): Promise<Dashboard> {
         signer: signers?.accountId ?? null,
         allowed: signers ? [...signers.allowed] : [],
       },
-      ...out,
-      keys: proofs,
-      errors,
-      fetchedAt: Date.now(),
-    };
-  }
+    });
 
   // ------------------------------------------------ runs
   async function listRuns(): Promise<unknown[]> {
@@ -282,36 +172,25 @@ export function createDashboard(opts: DashboardOptions): Promise<Dashboard> {
         try {
           const st = await stat(join(runsDir, n));
           if (!st.isFile()) return null;
-          const row: Record<string, unknown> = { id, size: st.size, mtimeMs: Math.round(st.mtimeMs) };
+          let parsed: unknown;
           if (st.size <= MAX_RUN_BYTES) {
             try {
-              const j = JSON.parse(await readFile(join(runsDir, n), 'utf8')) as Record<string, unknown>;
-              if (j && typeof j === 'object' && !Array.isArray(j)) {
-                for (const k of ['title', 'name', 'scenario', 'mode', 'startedAt', 'started_at', 'outcome', 'result']) {
-                  const v = j[k];
-                  if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') row[k] = typeof v === 'string' ? v.slice(0, 200) : v;
-                }
-                const steps = ['steps', 'events', 'timeline', 'entries'].map((k) => j[k]).find(Array.isArray);
-                if (steps) row.count = (steps as unknown[]).length;
-              }
+              parsed = JSON.parse(await readFile(join(runsDir, n), 'utf8'));
             } catch {
-              row.invalid = true;
+              parsed = null;
             }
           }
-          return row;
+          return runSummary(id, st.size, st.mtimeMs, parsed);
         } catch {
           return null;
         }
       }),
     );
-    return rows
-      .filter((r): r is Record<string, unknown> => r !== null)
-      .sort((a, b) => Number(b.mtimeMs) - Number(a.mtimeMs))
-      .slice(0, MAX_RUNS_LISTED);
+    return sortRuns(rows.filter((r): r is Record<string, unknown> => r !== null));
   }
 
   async function getRun(id: string): Promise<unknown> {
-    if (!RUN_ID_RE.test(id) || id.includes('..')) throw new HttpError(400, 'bad run id');
+    if (!isRunId(id)) throw new HttpError(400, 'bad run id');
     const file = resolve(runsDir, `${id}.json`);
     if (!file.startsWith(runsDir + sep)) throw new HttpError(400, 'bad run id');
     let st;
@@ -332,59 +211,18 @@ export function createDashboard(opts: DashboardOptions): Promise<Dashboard> {
 
   // ------------------------------------------------ SSE
   const clients = new Set<ServerResponse>();
+  const feed = new Feed(c);
   let pollTimer: NodeJS.Timeout | null = null;
   let beatTimer: NodeJS.Timeout | null = null;
   let busy = false;
-  let lastSeq: bigint | null = null;
-  let lastWritten: bigint | null = null;
-  let lastStatus = '';
-
-  const broadcast = (event: string, data: unknown) => {
-    const frame = `event: ${event}\ndata: ${JSON.stringify(data, jsonReplacer)}\n\n`;
-    for (const r of clients) r.write(frame);
-  };
-
-  const statusOf = (config: ConfigView | null, stats: Stats | null, error: string | null) => ({
-    paused: config?.paused ?? null,
-    pause_reason: config?.pause_reason ?? null,
-    pending: config?.pending ?? null,
-    activity_written: config?.activity_written ?? null,
-    stats,
-    error,
-  });
 
   async function tick(): Promise<void> {
     if (busy || clients.size === 0) return;
     busy = true;
     try {
-      const [config, stats] = await Promise.all([c.config(), c.stats()]);
-      const st = JSON.stringify(statusOf(config, stats, null));
-      if (st !== lastStatus) {
-        lastStatus = st;
-        broadcast('status', JSON.parse(st));
-      }
-      const written = BigInt(config.activity_written);
-      if (lastWritten === null || lastSeq === null) {
-        const recent = await c.activity();
-        lastSeq = recent.reduce((m, e) => (BigInt(e.seq) > m ? BigInt(e.seq) : m), -1n);
-        lastWritten = written;
-      } else if (written > lastWritten) {
-        const limit = Number(written - lastWritten > 100n ? 100n : written - lastWritten);
-        const fresh = await views.getActivity(undefined, Math.max(limit, 1));
-        const since = lastSeq;
-        const news = fresh.filter((e) => BigInt(e.seq) > since).sort((a, b) => (BigInt(a.seq) < BigInt(b.seq) ? -1 : 1));
-        lastWritten = written;
-        if (news.length) {
-          lastSeq = BigInt(news[news.length - 1]!.seq);
-          cache.clear(); // agents / pending / blocklist likely changed too
-          broadcast('activity', news satisfies LogEntry[]);
-        }
-      }
-    } catch (err) {
-      const st = JSON.stringify(statusOf(null, null, errMsg(err)));
-      if (st !== lastStatus) {
-        lastStatus = st;
-        broadcast('status', JSON.parse(st));
+      for (const e of await feed.poll()) {
+        const frame = sseFrame(e);
+        for (const r of clients) r.write(frame);
       }
     } finally {
       busy = false;
@@ -405,8 +243,7 @@ export function createDashboard(opts: DashboardOptions): Promise<Dashboard> {
     if (pollTimer) clearInterval(pollTimer);
     if (beatTimer) clearInterval(beatTimer);
     pollTimer = beatTimer = null;
-    lastSeq = lastWritten = null;
-    lastStatus = '';
+    feed.reset();
   }
 
   function openStream(req: IncomingMessage, res: ServerResponse): void {
@@ -418,7 +255,7 @@ export function createDashboard(opts: DashboardOptions): Promise<Dashboard> {
       'x-accel-buffering': 'no',
     });
     res.write(`retry: ${Math.max(pollMs, 1000)}\n\n`);
-    if (lastStatus) res.write(`event: status\ndata: ${lastStatus}\n\n`);
+    if (feed.lastStatus) res.write(`event: status\ndata: ${feed.lastStatus}\n\n`);
     clients.add(res);
     const drop = () => {
       clients.delete(res);
@@ -447,7 +284,7 @@ export function createDashboard(opts: DashboardOptions): Promise<Dashboard> {
   };
 
   async function action(name: ActionName, req: IncomingMessage): Promise<{ status: number; body: unknown }> {
-    if (readonly) throw new HttpError(403, 'read-only mode: actions are disabled');
+    if (readonly) throw new HttpError(403, READONLY_MESSAGE);
     if (!signers) throw new HttpError(403, 'actions are disabled (no OWNER_KEY / GUARDIAN_KEY, or not bound to localhost)');
     if (!checkToken(req)) throw new HttpError(403, 'missing or wrong X-Spendfuse-Token');
     const origin = req.headers.origin;
@@ -557,15 +394,8 @@ export function createDashboard(opts: DashboardOptions): Promise<Dashboard> {
     if (method !== 'GET' && method !== 'HEAD') throw new HttpError(405, 'method not allowed');
     if (path === '/api/state') return sendJson(res, 200, await state());
     if (path === '/api/activity') {
-      const before = url.searchParams.get('before');
-      const limitRaw = url.searchParams.get('limit');
-      if (before !== null && !isRequestId(before)) throw new HttpError(400, 'before must be a decimal sequence number');
-      let limit = 50;
-      if (limitRaw !== null) {
-        if (!/^\d{1,3}$/.test(limitRaw) || Number(limitRaw) < 1 || Number(limitRaw) > 100) throw new HttpError(400, 'limit must be 1..100');
-        limit = Number(limitRaw);
-      }
-      return sendJson(res, 200, { activity: await c.activity(before ?? undefined, limit) });
+      const { before, limit } = parseActivityQuery(url.searchParams);
+      return sendJson(res, 200, { activity: await c.activity(before, limit) });
     }
     if (path === '/api/runs') return sendJson(res, 200, { runs: await listRuns() });
     if (path.startsWith('/api/runs/')) {

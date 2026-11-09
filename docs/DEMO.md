@@ -227,5 +227,5 @@ want public. Never capture `.env`, a key, or the dashboard token URL.
     Its `vault keys:` line says either `WARNING: vault still has a full-access key ...` or
     `vault locked: no full-access keys`. Capture this after lockdown if you want to show the lock
     state; before lockdown, label it as "before lockdown".
-13. **Terminal, `npm test` passing** (optional). The Node test suite (61 tests, all passing at
+13. **Terminal, `npm test` passing** (optional). The Node test suite (74 tests, all passing at
     the time of writing) runs offline with no keys.

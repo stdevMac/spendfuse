@@ -579,13 +579,23 @@
     if (!('EventSource' in window)) return;
     const es = new EventSource('/api/events');
     const live = $('live');
+    // The hosted (Worker) server ends each stream after ~25 s and the browser reconnects at once,
+    // so only show "reconnecting" when the reconnect has not succeeded within a few seconds.
+    let offTimer = null;
     es.onopen = () => {
+      clearTimeout(offTimer);
+      offTimer = null;
       live.className = 'live live-on';
       live.textContent = 'live';
     };
     es.onerror = () => {
-      live.className = 'live live-off';
-      live.textContent = 'reconnecting';
+      if (offTimer) return;
+      offTimer = setTimeout(() => {
+        offTimer = null;
+        if (es.readyState === EventSource.OPEN) return;
+        live.className = 'live live-off';
+        live.textContent = 'reconnecting';
+      }, 8000);
     };
     es.addEventListener('status', (m) => {
       let d;

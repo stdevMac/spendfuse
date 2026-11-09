@@ -1,0 +1,23 @@
+// Cloudflare Worker for the hosted, read-only Spendfuse dashboard.
+//   npm run web:dev     -> wrangler dev (http://localhost:8787 by default)
+//   npm run web:deploy  -> wrangler deploy
+// To host your own: change name, routes and the vars below (no secrets: the Worker holds no keys).
+{
+  "name": "spendfuse",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "routes": [{ "pattern": "spendfuse.marcosmaceo.com", "custom_domain": true }],
+  "assets": {
+    "directory": "./web",
+    "binding": "ASSETS",
+    // every request goes through the Worker so static files get the same security headers (CSP etc.)
+    "run_worker_first": true
+  },
+  "vars": {
+    "NETWORK": "testnet",
+    "OWNER_ID": "tw-firewall-demo.testnet",
+    "VAULT_ID": "vault.tw-firewall-demo.testnet"
+  },
+  "observability": { "enabled": true }
+}

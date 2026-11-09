@@ -19,3 +19,7 @@ dist/
 .DS_Store
 *.log
 !docs/proofs/*.log
+
+# cloudflare wrangler local state
+.wrangler/
+.dev.vars

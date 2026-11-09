@@ -18,6 +18,8 @@
     "drill": "node --import ./src/lib/node-check.mjs src/scripts/drill.ts --live",
     "drill:dry": "node --import ./src/lib/node-check.mjs src/scripts/drill.ts --dry-run",
     "dashboard": "node --import ./src/lib/node-check.mjs src/server/index.ts",
+    "web:dev": "CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false npx -y wrangler@4 dev",
+    "web:deploy": "npx -y wrangler@4 deploy",
     "newkey": "node --import ./src/lib/node-check.mjs src/scripts/newkey.ts",
     "test": "node --import ./src/lib/node-check.mjs --test test/*.test.ts",
     "typecheck": "tsc -p tsconfig.json",

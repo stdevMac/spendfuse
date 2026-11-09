@@ -4,9 +4,9 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { KeyPairString, Provider } from 'near-api-js';
 import { getEnv, loadEnv, REPO_ROOT } from '../lib/env.ts';
-import { listKeys, makeProvider, signerFromSecret, validateAccountId } from '../lib/near.ts';
-import type { KeyInfo } from '../lib/near.ts';
-import { decodeContractError, guardianApi, ownerApi, SpendfuseClient } from '../lib/spendfuse.ts';
+import { makeProvider, signerFromSecret, validateAccountId } from '../lib/near.ts';
+import { decodeContractError, guardianApi, ownerApi } from '../lib/spendfuse.ts';
+import { liveViews } from './views.ts';
 import type { CallResult } from '../lib/spendfuse.ts';
 import type { AgentView, BlocklistView, ConfigView, LogEntry, PendingPayment, Stats } from '../lib/types.ts';
 
@@ -94,27 +94,7 @@ export function redactRunJson<T>(value: T, ids: readonly string[] = canaryIds())
   return JSON.parse(redactCanaryIds(JSON.stringify(value), ids)) as T;
 }
 
-export const keyToJson = (k: KeyInfo): KeyJson => ({
-  publicKey: k.publicKey,
-  nonce: k.nonce.toString(),
-  fullAccess: k.fullAccess,
-  receiverId: k.receiverId,
-  methodNames: k.methodNames,
-  allowance: k.allowance === undefined ? undefined : k.allowance === null ? null : k.allowance.toString(),
-});
-
-export function liveViews(provider: Provider, vaultId: string): Views {
-  const client = new SpendfuseClient({ provider, vaultId });
-  return {
-    getConfig: () => client.getConfig(),
-    getStats: () => client.getStats(),
-    listAllAgents: () => client.listAllAgents(),
-    getAllPending: () => client.getAllPending(),
-    getActivity: (before, limit) => client.getActivity(before, limit),
-    getBlocklist: (from, limit) => client.getBlocklist(from, limit),
-    listKeys: async (accountId) => (await listKeys(provider, accountId)).map(keyToJson),
-  };
-}
+export { keyToJson, liveViews } from './views.ts';
 
 const outcome = (r: CallResult<unknown>): ActionOutcome => ({ ok: r.ok, hash: r.summary.hash, error: r.error, result: r.result });
 async function run(fn: () => Promise<CallResult<unknown>>): Promise<ActionOutcome> {

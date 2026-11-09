@@ -7,6 +7,18 @@ on-chain firewall that blows (freezes the agent) on an attack.
 
 Built for the NEAR Hackathon, track "AI Security & Defense". Runs on NEAR testnet. MIT license.
 
+## Hosted demo
+
+**[spendfuse.marcosmaceo.com](https://spendfuse.marcosmaceo.com)** is a read-only view of the
+live testnet vault (`vault.tw-firewall-demo.testnet`): agents and limits, the incident feed, the
+agent's on-chain key proof, and the recorded attack runs listed in `src/worker/runs.ts`. It runs on
+Cloudflare Workers (`src/worker/`), reads the chain over public RPC, holds no keys, and refuses
+every write request (`403 read-only mode`).
+
+To host your own: set `name`, `routes` and the `vars` (`NETWORK`, `OWNER_ID`, `VAULT_ID`) in
+`wrangler.jsonc`, then `npm run web:deploy` (`npm run web:dev` for a local preview). There are no
+secrets to configure.
+
 ## The problem
 
 An AI agent that pays for things usually holds a private key. Two things go wrong:
@@ -374,6 +386,9 @@ Do `npm run dashboard` - see `Spendfuse dashboard for vault... (testnet)` and a 
   Every POST route is disabled.
 - The server sends a strict Content-Security-Policy and binds to `127.0.0.1` by default
   (`HOST`, `PORT` override).
+- Hosted read-only copy: the same API and front end as a Cloudflare Worker (`src/worker/`,
+  `wrangler.jsonc`), see "Hosted demo" above. Runs are the proof files listed in
+  `src/worker/runs.ts` (added by hand, bundled at build time).
 
 ## Optional: NEAR AI Cloud mode
 
@@ -429,9 +444,14 @@ From `package.json` (exact versions) and `contract/Cargo.toml`:
 | typescript (dev) | 7.0.2 | `npm run typecheck` |
 | @types/node (dev) | 26.6.6 | Node type definitions |
 | near-sdk (Rust) | =5.30.1 | contract; `unit-testing` feature for tests |
+| wrangler (via `npx`, not a dependency) | 4.x | build, preview and deploy the hosted dashboard Worker |
+
+Hosting: the public read-only dashboard runs on **Cloudflare Workers** with static assets
+(`src/worker/`, `wrangler.jsonc`).
 
 The dashboard HTTP server (`src/server/app.ts`) is built on `node:http` with no web framework
-(its chain backend uses near-api-js). The scout (`src/scout/`) uses only Node built-ins and
+(its chain backend uses near-api-js); the route logic it shares with the Worker is in
+`src/server/core.ts` and uses only web-standard APIs. The scout (`src/scout/`) uses only Node built-ins and
 `fetch`. The tests use the built-in `node --test` runner.
 `wasm-opt` (binaryen 132 for a byte-identical build) is optional for builds.
 
@@ -488,8 +508,8 @@ Full threat model: [docs/THREAT-MODEL.md](docs/THREAT-MODEL.md). Design details:
 
 ## Which code was AI-generated
 
-All of it. The contract, the TypeScript agent, guard, scout and scripts, the dashboard, the
-tests and these docs were written by AI coding agents (Claude Code), directed by the human
+All of it. The contract, the TypeScript agent, guard, scout and scripts, the dashboard (local
+server and the hosted Cloudflare Worker), the tests and these docs were written by AI coding agents (Claude Code), directed by the human
 author. The human chose the direction and reviews the output. The libraries listed above are
 third-party packages used as normal dependencies.
 
@@ -508,11 +528,13 @@ src/
   llm/                NEAR AI Cloud client, TEE attestation (near-attest.ts), signed receipts
   lib/                NEAR helpers, vault client, env loading, errors
   scripts/            setup-testnet, attack-demo, drill, status, lockdown, newkey
-  server/             dashboard HTTP server (read-only API, SSE, token-gated actions)
+  server/             dashboard HTTP server (read-only API, SSE, token-gated actions); core.ts shared with the Worker
+  worker/             Cloudflare Worker: hosted read-only dashboard (spendfuse.marcosmaceo.com)
 web/                  dashboard front end (plain HTML, CSS, JS)
-test/                 node --test suites (61 tests, offline)
+test/                 node --test suites (74 tests, offline)
 docs/                 ARCHITECTURE.md, DEMO.md, THREAT-MODEL.md
 .env.example          every environment variable, with comments
+wrangler.jsonc        Cloudflare Worker config for the hosted dashboard
 ```
 
 ## License
