@@ -1,0 +1,5 @@
+# Pinned so the deployed wasm is reproducible. 1.99.1 is the current stable: if it is not
+# installed under this name, ./build.sh falls back to an installed `stable` of the same version.
+[toolchain]
+channel = "1.99.1"
+targets = ["wasm32-unknown-unknown"]

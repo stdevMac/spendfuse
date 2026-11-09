@@ -1,0 +1,38 @@
+{
+  "name": "spendfuse",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "setup": "node --import ./src/lib/node-check.mjs src/scripts/setup-testnet.ts",
+    "setup:dry": "node --import ./src/lib/node-check.mjs src/scripts/setup-testnet.ts --dry-run",
+    "status": "node --import ./src/lib/node-check.mjs src/scripts/status.ts",
+    "lockdown": "node --import ./src/lib/node-check.mjs src/scripts/lockdown.ts",
+    "lockdown:dry": "node --import ./src/lib/node-check.mjs src/scripts/lockdown.ts --dry-run",
+    "demo": "node --import ./src/lib/node-check.mjs src/scripts/attack-demo.ts --live",
+    "demo:dry": "node --import ./src/lib/node-check.mjs src/scripts/attack-demo.ts --dry-run",
+    "drill": "node --import ./src/lib/node-check.mjs src/scripts/drill.ts --live",
+    "drill:dry": "node --import ./src/lib/node-check.mjs src/scripts/drill.ts --dry-run",
+    "dashboard": "node --import ./src/lib/node-check.mjs src/server/index.ts",
+    "newkey": "node --import ./src/lib/node-check.mjs src/scripts/newkey.ts",
+    "test": "node --import ./src/lib/node-check.mjs --test test/*.test.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test:contract": "cd contract && cargo test -j 2"
+  },
+  "dependencies": {
+    "@phala/dcap-qvl": "0.7.1",
+    "ethers": "6.17.0",
+    "jose": "6.2.15",
+    "near-api-js": "7.4.0",
+    "openai": "7.53.0",
+    "tweetnacl": "1.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.6",
+    "typescript": "7.0.2"
+  }
+}

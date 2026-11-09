@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Spendfuse Console</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true"></span>
+      <div>
+        <div class="brand-name">Spendfuse</div>
+        <div class="brand-sub">on-chain spending firewall for AI agents</div>
+      </div>
+    </div>
+    <div class="vault">
+      <span class="muted">vault</span>
+      <a id="vault-link" class="mono" href="#" target="_blank" rel="noopener noreferrer">loading</a>
+      <span id="network" class="tag">testnet</span>
+    </div>
+    <div class="status-group">
+      <span id="vault-pill" class="pill pill-unknown">...</span>
+      <span id="live" class="live live-off" title="Live feed">offline</span>
+      <span id="mode" class="tag">view</span>
+    </div>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" role="tab" data-tab="console" aria-selected="true">Console</button>
+    <button class="tab" role="tab" data-tab="runs" aria-selected="false">Attack runs</button>
+  </nav>
+
+  <main>
+    <section id="tab-console" class="tab-panel">
+      <div id="stats" class="stats"></div>
+
+      <div id="vault-actions" class="vault-actions" hidden>
+        <button id="btn-pause" class="btn btn-danger" hidden>Pause vault</button>
+        <button id="btn-unpause" class="btn" hidden>Unpause vault</button>
+        <span class="muted small" id="signer-info"></span>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Agents</h2><span id="agents-count" class="count"></span></div>
+        <div class="table-wrap">
+          <table class="agents">
+            <thead><tr><th>Agent</th><th>Status</th><th>Spent 24h / daily limit</th><th>Per payment</th><th>Rate (1h)</th><th>Payees</th><th>Counters</th><th></th></tr></thead>
+            <tbody id="agents-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-head"><h2>Approval queue</h2><span id="pending-count" class="count"></span></div>
+          <div id="pending-list" class="list"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Incident feed</h2><span class="muted small">live from get_activity</span></div>
+          <div class="legend small">
+            <span class="ev ev-paid">paid</span><span class="ev ev-escalated">escalated</span><span class="ev ev-blocked">blocked</span><span class="ev ev-frozen">frozen</span><span class="ev ev-tripped">canary trip</span>
+          </div>
+          <ol id="feed" class="feed"></ol>
+          <button id="feed-more" class="btn btn-ghost" hidden>Load older</button>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-head"><h2>Proof: agent keys</h2><span class="muted small">view_access_key_list</span></div>
+          <p class="muted small">The agent holds only a function-call key: receiver = vault, methods limited, no deposits possible. A full-access key here would be a red flag.</p>
+          <div id="proof"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Blocklist</h2><span id="blocklist-count" class="count"></span></div>
+          <div id="blocklist" class="list"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Vault</h2></div>
+        <dl id="config" class="kv"></dl>
+      </div>
+    </section>
+
+    <section id="tab-runs" class="tab-panel" hidden>
+      <div class="runs">
+        <div class="card runs-list">
+          <div class="card-head"><h2>Runs</h2><button id="runs-refresh" class="btn btn-ghost small">Refresh</button></div>
+          <p class="muted small">Logs written by the attack demo to .spendfuse/runs/.</p>
+          <ul id="runs" class="list"></ul>
+        </div>
+        <div class="card runs-detail">
+          <div id="run-head" class="card-head"><h2>Select a run</h2></div>
+          <dl id="run-meta" class="kv"></dl>
+          <ol id="run-timeline" class="timeline"></ol>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot muted small">
+    <span id="updated">not loaded</span>
+    <span>Values from the chain are untrusted and shown as plain text.</span>
+  </footer>
+</body>
+</html>

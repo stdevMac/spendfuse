@@ -1,0 +1,10 @@
+# Applied only to artifacts built for wasm32 (`cargo test` on the host is unaffected).
+# `--cfg near` makes near-sdk >= 5.27 use the NEAR host functions (sha256, panic_utf8, ...)
+# instead of pure-Rust fallbacks; without it panics surface as a bare `unreachable` trap and
+# the wasm is ~2x larger. `-C link-arg=-s` strips symbols/custom sections (what cargo-near does).
+# WARNING: an exported RUSTFLAGS or CARGO_ENCODED_RUSTFLAGS replaces these flags entirely.
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "link-arg=-s", "--cfg", "near"]
+
+[alias]
+wasm = ["build", "--target", "wasm32-unknown-unknown", "--release"]

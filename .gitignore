@@ -1,0 +1,21 @@
+# secrets — never commit
+.env
+.env.*
+!.env.example
+.near-credentials/
+.spendfuse/
+.tripwire/
+.owner.pub
+*.key.json
+
+# build output
+target/
+node_modules/
+dist/
+*.wasm
+!contract/res/*.wasm
+
+# os / editor
+.DS_Store
+*.log
+!docs/proofs/*.log
