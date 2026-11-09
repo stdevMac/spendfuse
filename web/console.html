@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en" data-type="software" data-radius="sharp" data-buttons="pill">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<title>Spendfuse console</title>
+<meta name="description" content="Live console for the Spendfuse vault on NEAR testnet: agents, approvals, incidents, policy, keys and recorded attack runs.">
+<meta name="theme-color" content="#0a0d14">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/instrument-sans-latin-wght.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/dm-mono-latin-400.woff2">
+<link rel="stylesheet" href="/assets/kit/system.css">
+<link rel="stylesheet" href="/assets/base.css">
+<link rel="stylesheet" href="/assets/console.css">
+<script type="module" src="/assets/console.js"></script>
+</head>
+<body class="cx">
+<header class="cx-top">
+  <a class="cx-brand" href="/" aria-label="Spendfuse home"><span class="mark" data-mark="dots" aria-hidden="true"></span><span class="cx-brand__name">Spendfuse</span></a>
+  <span class="cx-top__sep" aria-hidden="true"></span>
+  <div class="cx-vault">
+    <a class="cx-vault__id mono" id="vault-id" target="_blank" rel="noopener noreferrer">Reading the vault...</a>
+    <button class="copy cx-icon-copy" type="button" id="vault-copy" aria-label="Copy the vault account id" hidden><svg class="copy__idle" viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"/><path d="M10.5 5V3.5A1.5 1.5 0 0 0 9 2H3.5A1.5 1.5 0 0 0 2 3.5V9a1.5 1.5 0 0 0 1.5 1.5H5"/></svg><svg class="copy__done" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3 3 7-7"/></svg></button>
+  </div>
+  <div class="cx-top__meta">
+    <span class="chip" id="net-chip">testnet</span>
+    <span class="chip" id="ver-chip" hidden></span>
+    <span class="cx-top__bal" id="balance"></span>
+  </div>
+  <span class="cx-top__spacer"></span>
+  <span class="chip" id="status-chip" hidden></span>
+  <span class="live cx-live" id="live" data-state="wait" role="status">Connecting</span>
+  <span class="chip cx-mode" id="mode-chip" hidden></span>
+  <a class="nav__gh cx-gh" href="https://github.com/stdevMac/spendfuse" rel="noopener" aria-label="Spendfuse on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a>
+  <button class="cx-menu-btn" type="button" id="menu-btn" aria-expanded="false" aria-controls="menu-sheet" aria-label="Open the menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14"/></svg></button>
+</header>
+
+<div class="cx-shell">
+  <nav class="cx-rail" aria-label="Console">
+    <ul class="cx-rail__list">
+      <li><a class="cx-nav" href="#overview" data-nav="overview"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/><rect x="3" y="11" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></svg><span>Overview</span></a></li>
+      <li><a class="cx-nav" href="#agents" data-nav="agents"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="6" width="12" height="10" rx="2"/><path d="M10 3v3M7.5 11h.01M12.5 11h.01"/></svg><span>Agents</span></a></li>
+      <li><a class="cx-nav" href="#approvals" data-nav="approvals"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l2.5 2"/></svg><span>Approvals</span><span class="cx-badge" data-badge="approvals" hidden></span></a></li>
+      <li><a class="cx-nav" href="#incidents" data-nav="incidents"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h3l2-5 4 10 2-5h3"/></svg><span>Incidents</span></a></li>
+      <li><a class="cx-nav" href="#policy" data-nav="policy"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5 4 5v4.5c0 3.7 2.6 6.6 6 8 3.4-1.4 6-4.3 6-8V5l-6-2.5z"/></svg><span>Policy</span></a></li>
+      <li><a class="cx-nav" href="#runs" data-nav="runs"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.5v11l9-5.5-9-5.5z"/></svg><span>Runs</span></a></li>
+      <li><a class="cx-nav" href="#keys" data-nav="keys"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="7" cy="10" r="3.5"/><path d="M10.5 10H17M14.5 10v3M17 10v2"/></svg><span>Keys</span></a></li>
+    </ul>
+    <div class="cx-rail__foot">
+      <p><span class="mono">MIT</span> · open source · hackathon build</p>
+      <p>Live on NEAR testnet. Not audited. Not deployed to mainnet.</p>
+      <p>Keys shown are agent keys. Check the vault account's keys after lockdown.</p>
+      <p><a class="cx-textlink" href="/">About Spendfuse</a></p>
+    </div>
+  </nav>
+
+  <main class="cx-main" id="main" tabindex="-1">
+    <div class="cx-banners" id="banners" aria-live="polite"></div>
+
+    <div class="cx-view" id="view-overview" data-view="overview">
+      <div class="cx-head">
+        <div><h1>Overview</h1><p class="cx-head__sub" id="ov-sub">Reading the vault...</p></div>
+      </div>
+      <div class="cx-stats" id="ov-stats">
+        <div class="cx-stat cx-stat--skel" aria-hidden="true"><span></span><b></b></div>
+        <div class="cx-stat cx-stat--skel" aria-hidden="true"><span></span><b></b></div>
+        <div class="cx-stat cx-stat--skel" aria-hidden="true"><span></span><b></b></div>
+        <div class="cx-stat cx-stat--skel" aria-hidden="true"><span></span><b></b></div>
+      </div>
+      <a class="cx-strip" id="ov-pending" href="#approvals" hidden></a>
+      <div class="cx-grid2">
+        <div class="cx-col">
+        <section class="cx-panel" aria-labelledby="ov-agents-h">
+          <header class="cx-panel__head"><h2 id="ov-agents-h">Agents</h2><a class="cx-textlink" href="#agents">All agents</a></header>
+          <ul class="cx-alist" id="ov-agents"><li class="cx-alist__skel" aria-hidden="true"></li><li class="cx-alist__skel" aria-hidden="true"></li></ul>
+        </section>
+        <section class="cx-panel" aria-labelledby="ov-vault-h">
+          <header class="cx-panel__head"><h2 id="ov-vault-h">Vault</h2><a class="cx-textlink" href="#policy">Policy and roles</a></header>
+          <dl class="cx-kv cx-kv--num" id="ov-vault"><dt class="cx-skel"></dt><dd class="cx-skel"></dd><dt class="cx-skel"></dt><dd class="cx-skel"></dd><dt class="cx-skel"></dt><dd class="cx-skel"></dd></dl>
+        </section>
+        <section class="cx-panel" aria-labelledby="ov-policy-h">
+          <header class="cx-panel__head"><h2 id="ov-policy-h">Policy at a glance</h2><span class="cx-count mono" id="ov-policy-who"></span></header>
+          <dl class="cx-kv cx-kv--num" id="ov-policy"><dt class="cx-skel"></dt><dd class="cx-skel"></dd><dt class="cx-skel"></dt><dd class="cx-skel"></dd><dt class="cx-skel"></dt><dd class="cx-skel"></dd></dl>
+        </section>
+        </div>
+        <section class="cx-panel" aria-labelledby="ov-inc-h">
+          <header class="cx-panel__head"><h2 id="ov-inc-h">Latest incidents</h2><a class="cx-textlink" href="#incidents">All incidents</a></header>
+          <ol class="cx-inc" id="ov-incidents"></ol>
+        </section>
+      </div>
+    </div>
+
+    <div class="cx-view" id="view-agents" data-view="agents" hidden>
+      <div class="cx-head">
+        <div><h1>Agents</h1><p class="cx-head__sub">Each agent spends only through the vault, inside its own policy.</p></div>
+      </div>
+      <div class="cx-split" id="ag-split">
+        <ul class="cx-alist cx-alist--pick" id="ag-list" aria-label="Agents"></ul>
+        <div class="cx-detail" id="ag-detail"></div>
+      </div>
+    </div>
+
+    <div class="cx-view" id="view-approvals" data-view="approvals" hidden>
+      <div class="cx-head">
+        <div><h1>Approvals</h1><p class="cx-head__sub">Payments the vault held for the owner. Nothing moves until the owner approves. Held payments expire after 24 hours.</p></div>
+      </div>
+      <div class="cx-cards" id="ap-list"><div class="cx-card cx-card--skel" aria-hidden="true"></div><div class="cx-card cx-card--skel" aria-hidden="true"></div></div>
+    </div>
+
+    <div class="cx-view" id="view-incidents" data-view="incidents" hidden>
+      <div class="cx-head">
+        <div><h1>Incidents</h1><p class="cx-head__sub" id="in-sub">Every payment, block and owner action the vault wrote, newest first.</p></div>
+      </div>
+      <div class="cx-filters" id="in-filters" role="group" aria-label="Filter incidents">
+        <button type="button" class="cx-filter" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" class="cx-filter" data-filter="paid" aria-pressed="false">Paid</button>
+        <button type="button" class="cx-filter" data-filter="held" aria-pressed="false">Held</button>
+        <button type="button" class="cx-filter" data-filter="blocked" aria-pressed="false">Blocked</button>
+        <button type="button" class="cx-filter" data-filter="tripped" aria-pressed="false">Tripped</button>
+        <button type="button" class="cx-filter" data-filter="owner" aria-pressed="false">Owner actions</button>
+      </div>
+      <section class="cx-panel">
+        <ol class="cx-inc cx-inc--full" id="in-list"></ol>
+        <div class="cx-panel__foot"><button type="button" class="btn btn--secondary btn--sm" id="in-more" hidden>Load older</button></div>
+      </section>
+    </div>
+
+    <div class="cx-view" id="view-policy" data-view="policy" hidden>
+      <div class="cx-head">
+        <div><h1>Policy</h1><p class="cx-head__sub">Who controls the vault and the order every payment is checked in.</p></div>
+        <div class="cx-head__actions" id="po-actions"></div>
+      </div>
+      <div class="cx-grid2 cx-grid2--policy">
+        <section class="cx-panel" aria-labelledby="po-acc-h">
+          <header class="cx-panel__head"><h2 id="po-acc-h">Vault</h2></header>
+          <dl class="cx-kv" id="po-kv"></dl>
+        </section>
+        <section class="cx-panel" aria-labelledby="po-order-h">
+          <header class="cx-panel__head"><h2 id="po-order-h">Check order</h2></header>
+          <ol class="cx-order">
+            <li><span class="cx-order__n">1</span><span class="cx-order__k">frozen</span><span class="chip chip--stop">refused</span></li>
+            <li><span class="cx-order__n">2</span><span class="cx-order__k">canary</span><span class="chip chip--trip">tripped, frozen</span></li>
+            <li><span class="cx-order__n">3</span><span class="cx-order__k">paused</span><span class="chip chip--stop">refused</span></li>
+            <li><span class="cx-order__n">4</span><span class="cx-order__k">expired</span><span class="chip chip--stop">refused</span></li>
+            <li><span class="cx-order__n">5</span><span class="cx-order__k">hard limits<small>self payment, blocklist, zero amount, allowlist, per-payment cap, hourly rate, daily limit, vault balance</small></span><span class="chip chip--stop">blocked</span></li>
+            <li><span class="cx-order__n">6</span><span class="cx-order__k">soft signals<small>reported payee, new payee, over threshold. Blocked when the queue is full.</small></span><span class="chip chip--warn">held 24h</span></li>
+            <li><span class="cx-order__n">7</span><span class="cx-order__k">allow</span><span class="chip chip--ok">paid</span></li>
+          </ol>
+          <p class="cx-panel__note">First match decides. Blocks count toward auto-freeze, except those caused only by the vault's balance or a full approval queue: the agent's configured number in an hour, 25 at most, and 25 when unset.</p>
+        </section>
+      </div>
+      <section class="cx-panel" aria-labelledby="po-bl-h">
+        <header class="cx-panel__head"><h2 id="po-bl-h">Blocklist</h2><span class="cx-count" id="po-bl-count"></span></header>
+        <ul class="cx-rows" id="po-blocklist"></ul>
+      </section>
+    </div>
+
+    <div class="cx-view" id="view-runs" data-view="runs" hidden>
+      <div class="cx-head">
+        <div><h1>Attack runs</h1><p class="cx-head__sub">Recorded runs of the attack suite. Testnet hashes link to nearblocks; simulated steps are marked and never linked.</p></div>
+        <div class="cx-head__actions cx-runpick"><label class="cx-pick"><span class="cx-pick__k">Run</span><select id="run-pick" aria-label="Choose a recorded run"></select></label><button type="button" class="btn btn--secondary btn--sm" id="run-refresh">Refresh list</button></div>
+      </div>
+      <div id="run-body"></div>
+    </div>
+
+    <div class="cx-view" id="view-keys" data-view="keys" hidden>
+      <div class="cx-head">
+        <div><h1>Keys</h1><p class="cx-head__sub">Access keys on each agent account, read with view_access_key_list. An agent should hold only a function-call key for the vault.</p></div>
+      </div>
+      <div class="cx-cards cx-cards--keys" id="keys-list"></div>
+    </div>
+  </main>
+</div>
+
+<nav class="cx-tabs" aria-label="Console sections">
+  <a class="cx-tab" href="#overview" data-nav="overview"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/><rect x="3" y="11" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></svg><span>Overview</span></a>
+  <a class="cx-tab" href="#agents" data-nav="agents"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="6" width="12" height="10" rx="2"/><path d="M10 3v3M7.5 11h.01M12.5 11h.01"/></svg><span>Agents</span></a>
+  <a class="cx-tab" href="#approvals" data-nav="approvals"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l2.5 2"/></svg><span>Approvals</span><span class="cx-badge" data-badge="approvals" hidden></span></a>
+  <a class="cx-tab" href="#incidents" data-nav="incidents"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h3l2-5 4 10 2-5h3"/></svg><span>Incidents</span></a>
+  <a class="cx-tab" href="#runs" data-nav="runs"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4.5v11l9-5.5-9-5.5z"/></svg><span>Runs</span></a>
+</nav>
+
+<div class="cx-scrim" id="scrim" hidden></div>
+
+<div class="cx-sheet cx-menu" id="menu-sheet" role="dialog" aria-modal="true" aria-labelledby="menu-h" hidden>
+  <div class="cx-sheet__head"><h2 id="menu-h">Vault</h2><button type="button" class="cx-x" data-close aria-label="Close the menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button></div>
+  <dl class="cx-kv" id="menu-kv"></dl>
+  <ul class="cx-menu__links">
+    <li><a class="cx-menu__link" href="#policy" data-nav="policy">Policy</a></li>
+    <li><a class="cx-menu__link" href="#keys" data-nav="keys">Keys</a></li>
+    <li><a class="cx-menu__link" href="https://github.com/stdevMac/spendfuse" rel="noopener">Source on GitHub</a></li>
+    <li><a class="cx-menu__link" href="/">About Spendfuse</a></li>
+  </ul>
+  <p class="cx-menu__foot">MIT · hackathon build · live on NEAR testnet · not audited · not on mainnet</p>
+</div>
+
+<div class="cx-drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-h" hidden>
+  <div class="cx-drawer__head">
+    <button type="button" class="cx-back" data-close aria-label="Back to the run"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5"/></svg></button>
+    <h2 id="drawer-h">Scenario</h2>
+    <button type="button" class="cx-x" data-close aria-label="Close the scenario"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button>
+  </div>
+  <div class="cx-drawer__body" id="drawer-body"></div>
+</div>
+
+<div class="cx-confirm" id="confirm" role="alertdialog" aria-modal="true" aria-labelledby="confirm-h" aria-describedby="confirm-p" hidden>
+  <form class="cx-confirm__box" id="confirm-form" novalidate>
+    <h2 id="confirm-h">Sign this transaction?</h2>
+    <p id="confirm-p"></p>
+    <dl class="cx-kv cx-kv--tight" id="confirm-kv"></dl>
+    <label class="cx-field" id="confirm-reason-wrap" hidden>
+      <span class="cx-field__k" id="confirm-reason-k">Reason (optional, stored on chain)</span>
+      <input type="text" id="confirm-reason" maxlength="256" autocomplete="off" spellcheck="false">
+      <span class="cx-field__hint" id="confirm-reason-hint">Plain text, 256 bytes at most.</span>
+    </label>
+    <p class="cx-confirm__err" id="confirm-err" role="alert" hidden></p>
+    <div class="cx-confirm__btns">
+      <button type="button" class="btn btn--secondary" id="confirm-cancel">Cancel</button>
+      <button type="submit" class="btn btn--primary" id="confirm-ok">Sign and send</button>
+    </div>
+  </form>
+</div>
+
+<div class="cx-toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<noscript><p class="cx-noscript">The console needs JavaScript to read the vault. The landing page at <a href="/">/</a> lists the recorded run with every transaction.</p></noscript>
+</body>
+</html>

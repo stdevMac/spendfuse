@@ -9,8 +9,14 @@ Built for the NEAR Hackathon, track "AI Security & Defense". Runs on NEAR testne
 
 ## Hosted demo
 
-**[spendfuse.marcosmaceo.com](https://spendfuse.marcosmaceo.com)** is a read-only view of the
-live testnet vault (`vault.tw-firewall-demo.testnet`): agents and limits, the incident feed, the
+- Landing page: **[spendfuse.marcosmaceo.com](https://spendfuse.marcosmaceo.com/)**: what the
+  firewall does, the recorded 8-scenario proof run with every transaction linked, the reason codes,
+  and the known limits.
+- Console: **[spendfuse.marcosmaceo.com/console](https://spendfuse.marcosmaceo.com/console)**: a
+  read-only view of the live testnet vault (`vault.tw-firewall-demo.testnet`). The proof run opens at
+  [/console#runs/live-run-2026-11-09T04-59-38-380Z](https://spendfuse.marcosmaceo.com/console#runs/live-run-2026-11-09T04-59-38-380Z).
+
+The console shows agents and limits, the incident feed, the
 agent's on-chain key proof, and the recorded attack runs listed in `src/worker/runs.ts`. It runs on
 Cloudflare Workers (`src/worker/`), reads the chain over public RPC, holds no keys, and refuses
 every write request (`403 read-only mode`).
@@ -374,7 +380,7 @@ replace it:
 ## Dashboard
 
 Do `npm run dashboard` - see `Spendfuse dashboard for vault... (testnet)` and a URL on
-`http://127.0.0.1:8787`.
+`http://127.0.0.1:8787`. The landing page is at `/` and the console at `/console`.
 
 - Panels: agents and their limits, approval queue, incident feed (live, server-sent events),
   "Proof: agent keys" (the agent's access keys as read from chain), blocklist, vault balance,
@@ -530,8 +536,15 @@ src/
   scripts/            setup-testnet, attack-demo, drill, status, lockdown, newkey
   server/             dashboard HTTP server (read-only API, SSE, token-gated actions); core.ts shared with the Worker
   worker/             Cloudflare Worker: hosted read-only dashboard (spendfuse.marcosmaceo.com)
-web/                  dashboard front end (plain HTML, CSS, JS)
-test/                 node --test suites (74 tests, offline)
+web/                  front end: plain HTML, CSS and JS, no framework, no build step, no CDN
+  index.html          landing page (/)
+  console.html        console (/console): overview, incidents, approvals, agents, policy, keys, runs
+  assets/console.*    console script and styles; data goes in through textContent only
+  assets/landing.*    landing page script and styles
+  assets/base.css     shared tokens, chips, windows, incident rows; assets/ui.js shared helpers
+  assets/kit/         tasteskill.dev layout and motion kit (MIT), kept byte-identical
+  fonts/              self-hosted Instrument Sans and DM Mono (SIL OFL 1.1, see fonts/OFL.txt)
+test/                 node --test suites (83 tests, offline)
 docs/                 ARCHITECTURE.md, DEMO.md, THREAT-MODEL.md
 .env.example          every environment variable, with comments
 wrangler.jsonc        Cloudflare Worker config for the hosted dashboard
@@ -540,3 +553,7 @@ wrangler.jsonc        Cloudflare Worker config for the hosted dashboard
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+Third-party assets in `web/`: the fonts Instrument Sans and DM Mono are under the SIL Open Font
+License 1.1 (`web/fonts/OFL.txt`); the layout and motion kit in `web/assets/kit/` is from
+[tasteskill.dev](https://www.tasteskill.dev/) under the MIT license.

@@ -38,7 +38,16 @@ const views: Views = {
   getBlocklist: async () => [],
   listKeys: async () => agentKeys,
 };
-const assets = { fetch: async (r: Request) => new Response(new URL(r.url).pathname === '/' ? '<!doctype html>' : 'nope', { status: new URL(r.url).pathname === '/' ? 200 : 404, headers: { 'content-type': 'text/html' } }) };
+// a fake ASSETS binding with exact paths only (wrangler.jsonc: html_handling "none"); it records what it was asked for
+const PAGES: Record<string, string> = { '/index.html': '<!doctype html>', '/console.html': '<!doctype html><title>console</title>' };
+const fetched: string[] = [];
+const assets = {
+  fetch: async (r: Request) => {
+    const p = new URL(r.url).pathname;
+    fetched.push(p + new URL(r.url).search);
+    return new Response(PAGES[p] ?? 'nope', { status: p in PAGES ? 200 : 404, headers: { 'content-type': 'text/html' } });
+  },
+};
 const runs = [{ id: 'run-1', run: { startedAt: '2026-11-09T04:59:38.380Z', finishedAt: '2026-11-09T05:00:59.366Z', mode: 'live', steps: [1, 2] } }];
 
 const h: Handler = createHandler({ views, vaultId: VAULT, network: 'testnet', proofAccounts: [AGENT], runs, assets, cacheMs: 5000, pollMs: 10, streamMs: 60, log: () => {} });
@@ -147,6 +156,20 @@ describe('worker handler', () => {
     assert.equal(r.headers.get('content-security-policy'), CSP);
     assert.equal(r.headers.get('x-frame-options'), 'DENY');
     assert.equal((await req('/missing.js')).status, 404);
+  });
+
+  test('the landing and the console map to their own files', async () => {
+    fetched.length = 0;
+    assert.equal(await (await req('/')).text(), '<!doctype html>');
+    for (const path of ['/console', '/console/', '/console?token=x']) {
+      const r = await req(path);
+      assert.equal(r.status, 200, path);
+      assert.equal(await r.text(), '<!doctype html><title>console</title>', path);
+      assert.equal(r.headers.get('content-security-policy'), CSP, path);
+      assert.equal(r.headers.get('x-frame-options'), 'DENY', path);
+    }
+    assert.deepEqual(fetched, ['/index.html', '/console.html', '/console.html', '/console.html?token=x']);
+    assert.equal((await req('/consoles')).status, 404);
   });
 
   test('/api/events streams status, then new activity, then ends', async () => {

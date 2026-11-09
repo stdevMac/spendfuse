@@ -123,6 +123,9 @@ before(() => {
   writeFileSync(join(webRoot, 'index.html'), '<!doctype html><title>t</title>');
   writeFileSync(join(webRoot, 'app.js'), 'console.log(1)');
   writeFileSync(join(webRoot, 'style.css'), 'body{}');
+  writeFileSync(join(webRoot, 'console.html'), '<!doctype html><title>console</title>');
+  mkdirSync(join(webRoot, 'fonts'));
+  writeFileSync(join(webRoot, 'fonts', 'x.woff2'), 'wOF2');
   writeFileSync(join(tmp, 'secret.txt'), 'TOP SECRET');
   writeFileSync(join(runsDir, 'run-1.json'), JSON.stringify({ title: 'Simulated refund redirect', mode: 'scripted', steps: [{ kind: 'blocked' }, { kind: 'tripped' }] }));
   writeFileSync(join(runsDir, 'broken.json'), '{nope');
@@ -188,6 +191,16 @@ describe('local mode with owner signer', () => {
     assert.equal((await raw(port, 'GET', '/app.js')).headers['content-type'], 'text/javascript; charset=utf-8');
     assert.equal((await raw(port, 'GET', '/style.css')).headers['content-type'], 'text/css; charset=utf-8');
     assert.equal((await raw(port, 'GET', '/nope.js')).status, 404);
+    for (const p of ['/console', '/console/', '/console?token=x']) {
+      const c = await raw(port, 'GET', p);
+      assert.equal(c.status, 200, p);
+      assert.equal(c.headers['content-type'], 'text/html; charset=utf-8', p);
+      assert.equal(c.headers['content-security-policy'], CSP, p);
+      assert.match(c.body, /<title>console<\/title>/, p);
+    }
+    assert.doesNotMatch((await raw(port, 'GET', '/')).body, /console/);
+    assert.equal((await raw(port, 'GET', '/fonts/x.woff2')).headers['content-type'], 'font/woff2');
+    assert.equal((await raw(port, 'GET', '/consoles')).status, 404);
     assert.equal((await raw(port, 'GET', '/api/state')).headers['content-security-policy'], CSP);
   });
 

@@ -319,7 +319,11 @@ so old records are never read again but their storage stays locked.
 ## Dashboard (`npm run dashboard`)
 
 `src/server/index.ts` starts `createDashboard` (`src/server/app.ts`) with a live backend
-(`src/server/backend.ts`). It has no runtime dependencies and serves `web/`.
+(`src/server/backend.ts`). It has no runtime dependencies and serves `web/`: the landing page
+(`web/index.html`) at `/` and the console (`web/console.html`) at `/console`. Both are plain
+HTML, CSS and JS with no build step and no CDN; they read `/api/*`, insert data through
+`textContent` only, and run under a CSP with no inline scripts or styles. Console actions appear
+only in local mode with a token; the landing page never writes.
 
 - Read-only JSON: `/api/state` (config, stats, agents, pending, activity, blocklist, and a key
   proof for each agent from `view_access_key_list`, flagging full-access or off-vault keys via

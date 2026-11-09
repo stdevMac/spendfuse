@@ -22,13 +22,13 @@ async function main(): Promise<void> {
   const backend = liveBackend({ withSigners: !readonly });
   const dash = await createDashboard({ backend, host, port, readonly });
   console.log(`Spendfuse dashboard for ${backend.vaultId} (${backend.network})`);
-  if (readonly) console.log(`  READONLY mode: actions disabled. ${dash.url}/`);
+  if (readonly) console.log(`  READONLY mode: actions disabled. ${dash.url}/console`);
   else if (dash.actionsEnabled) {
     console.log(`  actions enabled for ${backend.signers?.role} ${backend.signers?.accountId}`);
-    console.log(`  open: ${dash.url}/?token=${dash.token}`);
+    console.log(`  open: ${dash.url}/console?token=${dash.token}`);
     console.log('  (the token is valid until this process exits; do not share it)');
   } else {
-    console.log(`  view-only (no OWNER_KEY / GUARDIAN_KEY, or not bound to loopback). ${dash.url}/`);
+    console.log(`  view-only (no OWNER_KEY / GUARDIAN_KEY, or not bound to loopback). ${dash.url}/console`);
   }
   const stop = () => {
     void dash.close().then(() => process.exit(0));

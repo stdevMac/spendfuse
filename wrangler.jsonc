@@ -12,7 +12,10 @@
     "directory": "./web",
     "binding": "ASSETS",
     // every request goes through the Worker so static files get the same security headers (CSP etc.)
-    "run_worker_first": true
+    "run_worker_first": true,
+    // exact paths only: the Worker maps "/" to /index.html and "/console" to /console.html itself, so no
+    // trailing-slash redirect can bounce /console.html back to /console
+    "html_handling": "none"
   },
   "vars": {
     "NETWORK": "testnet",

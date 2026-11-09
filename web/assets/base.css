@@ -1,0 +1,177 @@
+/*
+  Spendfuse base: fonts, palette and the shared product parts (chips, windows, code) on top of the
+  taste-skill kit (assets/kit/system.css, MIT, see assets/kit/LICENSE.txt). Dark only.
+*/
+
+/* ---------------------------------------------------------------- fonts (self-hosted, OFL: /fonts/OFL.txt) */
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("/fonts/instrument-sans-latin-wght.woff2") format("woff2");
+  font-weight: 400 700; font-style: normal; font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "DM Mono";
+  src: url("/fonts/dm-mono-latin-400.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "DM Mono";
+  src: url("/fonts/dm-mono-latin-500.woff2") format("woff2");
+  font-weight: 500; font-style: normal; font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---------------------------------------------------------------- palette and type */
+:root {
+  color-scheme: dark;
+  --p-bg: #0a0d14;
+  --p-surface: #131824;
+  --p-ink: #e9edf3;
+  --p-muted: #a0a8b6;
+  --p-accent: #5ab9fc;
+  --p-accent-ink: #0a0d14;
+  --p-action: #5ab9fc;
+  --p-action-ink: #0a0d14;
+  --p-inv-bg: #0a0d14;
+  --p-inv-surface: #131824;
+  --p-inv-ink: #e9edf3;
+  --p-inv-muted: #a0a8b6;
+  --p-inv-accent: #5ab9fc;
+  --p-inv-accent-ink: #0a0d14;
+  --p-inv-action: #5ab9fc;
+  --p-inv-action-ink: #0a0d14;
+
+  --font-display: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-text: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "DM Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --display-weight: 500;
+  --display-tracking: -0.028em;
+
+  /* product tokens */
+  --surface-2: #1a2030;
+  --border: #2c3446;
+  --ok: #4fd1a5;
+  --warn: #f2c14e;
+  --stop: #ff6b6b;
+  --trip: #ff8a4c;
+  --ok-bg: rgb(79 209 165 / .12);
+  --warn-bg: rgb(242 193 78 / .12);
+  --stop-bg: rgb(255 107 107 / .12);
+  --trip-bg: rgb(255 138 76 / .14);
+  --ease-enter: cubic-bezier(.22, 1, .36, 1);
+}
+:root, .ground-base { --line: #232a3a; --line-strong: #2c3446; }
+html { background: var(--bg); }
+body { background: var(--bg); font-feature-settings: "ss01" 0; }
+h1 { letter-spacing: -0.036em; }
+code, kbd, samp, pre, .mono { font-family: var(--font-mono); }
+.num { font-variant-numeric: tabular-nums; }
+::selection { background: color-mix(in oklab, var(--accent) 40%, transparent); color: var(--ink); }
+
+/* the mark: three dots in a row, accent / ink / muted */
+.mark[data-mark="dots"] {
+  -webkit-mask: none; mask: none; width: 26px; height: 8px; border-radius: 0;
+  background:
+    radial-gradient(circle at 4px 4px, var(--accent) 3.5px, transparent 4px),
+    radial-gradient(circle at 13px 4px, var(--ink) 3.5px, transparent 4px),
+    radial-gradient(circle at 22px 4px, var(--muted) 3.5px, transparent 4px);
+}
+.nav__logo { font-size: 19px; gap: 10px; }
+.nav { background: var(--bg); border-bottom: 1px solid var(--line); }
+.nav__gh { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 999px; color: var(--muted); transition: color var(--dur) var(--ease); }
+.nav__gh:hover { color: var(--ink); }
+.nav__gh svg { width: 20px; height: 20px; fill: currentColor; }
+@media (max-width: 1023px) { .nav__gh { display: none; } }
+
+/* ---------------------------------------------------------------- chips (a state word, never colour alone) */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; flex: none;
+  border-radius: var(--r-sm); font: 500 12px/1 var(--font-mono); letter-spacing: 0; white-space: nowrap;
+  color: var(--muted); background: var(--surface-2); border: 1px solid var(--line);
+}
+.chip--ok { color: var(--ok); background: var(--ok-bg); border-color: transparent; }
+.chip--warn { color: var(--warn); background: var(--warn-bg); border-color: transparent; }
+.chip--stop { color: var(--stop); background: var(--stop-bg); border-color: transparent; }
+.chip--trip { color: var(--trip); background: var(--trip-bg); border-color: transparent; }
+.chip--info { color: var(--accent); background: color-mix(in oklab, var(--accent) 12%, transparent); border-color: transparent; }
+
+/* the live dot: breathes every 2.4s (the hero's one loop), still under reduced motion */
+.live { display: inline-flex; align-items: center; gap: 6px; font: 500 12px/1 var(--font-text); color: var(--ink); }
+.live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 0 rgb(79 209 165 / .5); }
+.live[data-state="off"]::before { background: var(--muted); }
+.live[data-state="wait"]::before { background: var(--warn); }
+@media (prefers-reduced-motion: no-preference) {
+  .live[data-state="on"]::before { animation: sf-breathe 2.4s var(--ease) 3; }
+}
+@keyframes sf-breathe { 0% { box-shadow: 0 0 0 0 rgb(79 209 165 / .45); } 70%, 100% { box-shadow: 0 0 0 7px rgb(79 209 165 / 0); } }
+
+/* ---------------------------------------------------------------- windows (app, code, terminal) */
+.win {
+  position: relative; display: flex; flex-direction: column; min-height: 0; overflow: clip;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
+}
+.win__bar {
+  display: flex; align-items: center; gap: 12px; flex: none; height: 44px; padding: 0 14px;
+  border-bottom: 1px solid var(--line); background: color-mix(in oklab, var(--surface) 70%, var(--bg));
+}
+.win__dots { display: inline-flex; gap: 6px; flex: none; }
+.win__dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
+.win__title { font: 400 12px/1 var(--font-mono); color: var(--ink); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.win__spacer { flex: 1; }
+.win__body { position: relative; flex: 1 1 auto; min-height: 0; overflow: clip; }
+/* content that runs past the window's foot fades into it */
+.win__fade::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 64px; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--surface));
+}
+
+/* a row of the incident list (hero window, app-frame) */
+.inc { display: grid; grid-template-columns: 120px minmax(0, 1fr) auto; grid-template-areas: "chip who amt" "chip why when"; gap: 2px 14px; align-items: center;
+       padding: 12px 18px; border-bottom: 1px solid var(--line); font-size: 13px; line-height: 20px; }
+.inc__chip { grid-area: chip; }
+@media (max-width: 639px) { .inc { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "chip chip" "who amt" "why when"; row-gap: 4px; } .inc__chip { margin-bottom: 4px; } }
+.inc__who { grid-area: who; min-width: 0; font-family: var(--font-mono); color: var(--ink); overflow-wrap: anywhere; }
+.inc__amt { grid-area: amt; font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink); text-align: right; white-space: nowrap; }
+.inc__why { grid-area: why; min-width: 0; font: 400 12px/18px var(--font-mono); color: var(--muted); overflow-wrap: anywhere; }
+.inc__when { grid-area: when; font-size: 12px; color: var(--muted); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.inc--skel .inc__who, .inc--skel .inc__why, .inc--skel .inc__amt, .inc--skel .inc__chip { height: 10px; border-radius: 3px; background: var(--surface-2); }
+.inc--skel .inc__chip { height: 22px; width: 72px; }
+.inc--skel .inc__who { width: 70%; }
+.inc--skel .inc__why { width: 45%; }
+.inc--skel .inc__amt { width: 56px; }
+.win__msg { padding: 24px 18px; color: var(--muted); font-size: 14px; max-width: 46ch; }
+
+/* a limit bar (width through the CSSOM: --fill 0 to 1) */
+.bar { position: relative; height: 4px; border-radius: 2px; background: var(--surface-2); overflow: hidden; }
+.bar > i { position: absolute; inset: 0 auto 0 0; width: calc(var(--fill, 0) * 100%); background: var(--accent); border-radius: 2px; }
+.bar[data-full] > i { background: var(--warn); }
+
+/* ---------------------------------------------------------------- code (hand-highlighted) */
+.code { margin: 0; padding: 20px 22px; overflow: auto; font: 400 13px/21px var(--font-mono); color: var(--ink); tab-size: 2; white-space: pre; }
+.code .k { color: var(--accent); }
+.code .s { color: var(--ok); }
+.code .c { color: var(--muted); }
+.code .n { color: var(--warn); }
+.code .f { color: var(--ink); font-weight: 500; }
+.code .p { color: var(--muted); }
+.copy {
+  display: inline-flex; align-items: center; gap: 8px; height: var(--btn-h); padding: 0 var(--s-4); border-radius: 999px;
+  border: 1px solid transparent; background: color-mix(in oklab, var(--ink) 8%, var(--bg)); color: var(--ink); font: 500 var(--t-body)/1 var(--font-text); cursor: pointer;
+  transition: background-color var(--dur) var(--ease);
+}
+.copy:hover { background: color-mix(in oklab, var(--ink) 14%, var(--bg)); }
+.copy svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.copy .copy__done { display: none; }
+.copy[data-done] .copy__done { display: block; color: var(--ok); }
+.copy[data-done] .copy__idle { display: none; }
+
+/* ---------------------------------------------------------------- reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
+}
+
+/* the kit's text link draws its underline as a background; inline keeps it a plain line under the words */
+.link { display: inline; }
+.link::after { margin-left: var(--s-2); }

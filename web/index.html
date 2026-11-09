@@ -1,113 +1,640 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-type="software" data-radius="sharp" data-buttons="pill" data-motion>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="referrer" content="no-referrer">
-  <title>Spendfuse Console</title>
-  <link rel="stylesheet" href="/style.css">
-  <script src="/app.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spendfuse: spending firewall for AI agents on NEAR</title>
+<meta name="description" content="A NEAR vault contract that holds your agent's money and enforces limits, approvals and canaries on chain. Open source, live on testnet.">
+<meta property="og:title" content="Spendfuse: spending firewall for AI agents on NEAR">
+<meta property="og:description" content="A NEAR vault contract that holds your agent's money and enforces limits, approvals and canaries on chain. Open source, live on testnet.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0a0d14">
+<meta name="site-kind" content="software">
+<meta name="page-type" content="software">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/instrument-sans-latin-wght.woff2">
+<link rel="stylesheet" href="/assets/kit/system.css">
+<link rel="stylesheet" href="/assets/kit/motion/motion.css">
+<link rel="stylesheet" href="/assets/kit/moments/letters-assemble/moment.css">
+<link rel="stylesheet" href="/assets/base.css">
+<link rel="stylesheet" href="/assets/landing.css">
+<script src="/assets/enter.js"></script>
+<link rel="modulepreload" href="/assets/kit/moments/moments.js">
+<link rel="modulepreload" href="/assets/kit/moments/lib.js">
+<link rel="modulepreload" href="/assets/kit/moments/letters-assemble/moment.js">
 </head>
-<body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="logo" aria-hidden="true"></span>
-      <div>
-        <div class="brand-name">Spendfuse</div>
-        <div class="brand-sub">on-chain spending firewall for AI agents</div>
-      </div>
+<body id="top">
+<!-- Plan line 2: hero split · palette blue-black-cornflower · type instrument · radius sharp · nav-centre · footer-dark · close-word · rhythm space · buttons pill · mark dots · moments letters-assemble -->
+
+<header class="nav nav--centre">
+  <div class="wrap nav__bar">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="nav__logo" href="#top"><span class="mark" data-mark="dots" aria-hidden="true"></span>Spendfuse</a>
+    <nav class="nav__links" aria-label="Main">
+      <div class="nav__item"><a class="nav__link" href="#how">How it works</a></div>
+      <div class="nav__item"><a class="nav__link" href="#proof">Proof</a></div>
+      <div class="nav__item"><a class="nav__link" href="#security">Security</a></div>
+      <div class="nav__item"><a class="nav__link" href="#code">Code</a></div>
+      <div class="nav__item"><a class="nav__link" href="#limits">Limits</a></div>
+    </nav>
+    <div class="nav__actions">
+      <a class="nav__gh" href="https://github.com/stdevMac/spendfuse" rel="noopener" aria-label="Spendfuse on GitHub"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+      <a class="btn btn--primary" href="/console">Open the live console</a>
     </div>
-    <div class="vault">
-      <span class="muted">vault</span>
-      <a id="vault-link" class="mono" href="#" target="_blank" rel="noopener noreferrer">loading</a>
-      <span id="network" class="tag">testnet</span>
-    </div>
-    <div class="status-group">
-      <span id="vault-pill" class="pill pill-unknown">...</span>
-      <span id="live" class="live live-off" title="Live feed">offline</span>
-      <span id="mode" class="tag">view</span>
-    </div>
-  </header>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menu"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+  </div>
+</header>
 
-  <div id="banner" class="banner" hidden></div>
+<main id="main">
 
-  <nav class="tabs" role="tablist">
-    <button class="tab active" role="tab" data-tab="console" aria-selected="true">Console</button>
-    <button class="tab" role="tab" data-tab="runs" aria-selected="false">Attack runs</button>
-  </nav>
-
-  <main>
-    <section id="tab-console" class="tab-panel">
-      <div id="stats" class="stats"></div>
-
-      <div id="vault-actions" class="vault-actions" hidden>
-        <button id="btn-pause" class="btn btn-danger" hidden>Pause vault</button>
-        <button id="btn-unpause" class="btn" hidden>Unpause vault</button>
-        <span class="muted small" id="signer-info"></span>
-      </div>
-
-      <div class="card">
-        <div class="card-head"><h2>Agents</h2><span id="agents-count" class="count"></span></div>
-        <div class="table-wrap">
-          <table class="agents">
-            <thead><tr><th>Agent</th><th>Status</th><th>Spent 24h / daily limit</th><th>Per payment</th><th>Rate (1h)</th><th>Payees</th><th>Counters</th><th></th></tr></thead>
-            <tbody id="agents-body"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="grid2">
-        <div class="card">
-          <div class="card-head"><h2>Approval queue</h2><span id="pending-count" class="count"></span></div>
-          <div id="pending-list" class="list"></div>
-        </div>
-        <div class="card">
-          <div class="card-head"><h2>Incident feed</h2><span class="muted small">live from get_activity</span></div>
-          <div class="legend small">
-            <span class="ev ev-paid">paid</span><span class="ev ev-escalated">escalated</span><span class="ev ev-blocked">blocked</span><span class="ev ev-frozen">frozen</span><span class="ev ev-tripped">canary trip</span>
+  <!-- S1 hero -->
+  <section class="hero hero--split" data-enter aria-labelledby="hero-h">
+    <div class="wrap">
+      <div class="hero-text grid hero-split">
+        <div class="hero-copy span-6">
+          <p class="hero-notice">Open source (MIT) · Hackathon build · Live on NEAR testnet · Not audited · Mainnet not deployed</p>
+          <h1 id="hero-h">A spending firewall for AI agents</h1>
+          <p class="t-lead hero-lead">Spendfuse is a vault contract on NEAR. Your agent gets a key that can only ask the vault to pay. Limits, approvals and canaries decide on chain, before any money moves.</p>
+          <div class="btn-row">
+            <a class="btn btn--primary" href="/console">Open the live console<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+            <a class="btn btn--secondary" href="https://github.com/stdevMac/spendfuse" rel="noopener">Read the source on GitHub</a>
           </div>
-          <ol id="feed" class="feed"></ol>
-          <button id="feed-more" class="btn btn-ghost" hidden>Load older</button>
+          <p class="hero-proof">8 of 8 scenarios passed on NEAR testnet, 9 Nov 2026: 5 attacks, 1 mistake, 2 normal payments. <a class="link" href="#proof">See every transaction</a></p>
+        </div>
+        <div class="hero-visual span-6 start-7">
+          <div class="win hero-win ui ui-win" role="group" aria-label="Spendfuse incident log, live from the vault">
+            <div class="win__bar">
+              <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="win__title">vault.tw-firewall-demo.testnet</span>
+              <span class="chip">testnet</span>
+              <span class="win__spacer"></span>
+              <span class="live" data-state="wait" data-live>Connecting</span>
+            </div>
+            <div class="win__sub">
+              <span class="win__h">Incidents</span>
+              <span class="win__meta" data-hero-count>Newest first</span>
+            </div>
+            <div class="win__body">
+              <ul class="inc-list" data-hero-list aria-live="polite">
+                <li class="inc inc--skel" aria-hidden="true"><span class="inc__chip"></span><span class="inc__who"></span><span class="inc__amt"></span><span class="inc__why"></span><span class="inc__when"></span></li>
+                <li class="inc inc--skel" aria-hidden="true"><span class="inc__chip"></span><span class="inc__who"></span><span class="inc__amt"></span><span class="inc__why"></span><span class="inc__when"></span></li>
+                <li class="inc inc--skel" aria-hidden="true"><span class="inc__chip"></span><span class="inc__who"></span><span class="inc__amt"></span><span class="inc__why"></span><span class="inc__when"></span></li>
+                <li class="inc inc--skel" aria-hidden="true"><span class="inc__chip"></span><span class="inc__who"></span><span class="inc__amt"></span><span class="inc__why"></span><span class="inc__when"></span></li>
+                <li class="inc inc--skel" aria-hidden="true"><span class="inc__chip"></span><span class="inc__who"></span><span class="inc__amt"></span><span class="inc__why"></span><span class="inc__when"></span></li>
+                <li class="inc inc--skel" aria-hidden="true"><span class="inc__chip"></span><span class="inc__who"></span><span class="inc__amt"></span><span class="inc__why"></span><span class="inc__when"></span></li>
+                <li class="inc inc--skel" aria-hidden="true"><span class="inc__chip"></span><span class="inc__who"></span><span class="inc__amt"></span><span class="inc__why"></span><span class="inc__when"></span></li>
+              </ul>
+            </div>
+          </div>
+          <div class="float ui ui-float" data-float>
+            <p class="float__label">Demo agent, last 24h</p>
+            <p class="float__value num" data-float-value>Reading the vault...</p>
+            <div class="bar" data-float-bar><i></i></div>
+            <p class="float__line num" data-float-line></p>
+          </div>
         </div>
       </div>
+    </div>
+  </section>
 
-      <div class="grid2">
-        <div class="card">
-          <div class="card-head"><h2>Proof: agent keys</h2><span class="muted small">view_access_key_list</span></div>
-          <p class="muted small">The agent holds only a function-call key: receiver = vault, methods limited, no deposits possible. A full-access key here would be a red flag.</p>
-          <div id="proof"></div>
-        </div>
-        <div class="card">
-          <div class="card-head"><h2>Blocklist</h2><span id="blocklist-count" class="count"></span></div>
-          <div id="blocklist" class="list"></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-head"><h2>Vault</h2></div>
-        <dl id="config" class="kv"></dl>
-      </div>
-    </section>
-
-    <section id="tab-runs" class="tab-panel" hidden>
-      <div class="runs">
-        <div class="card runs-list">
-          <div class="card-head"><h2>Runs</h2><button id="runs-refresh" class="btn btn-ghost small">Refresh</button></div>
-          <p class="muted small">Logs written by the attack demo to .spendfuse/runs/.</p>
-          <ul id="runs" class="list"></ul>
-        </div>
-        <div class="card runs-detail">
-          <div id="run-head" class="card-head"><h2>Select a run</h2></div>
-          <dl id="run-meta" class="kv"></dl>
-          <ol id="run-timeline" class="timeline"></ol>
+  <!-- S2 app-frame -->
+  <section class="section app-sec" id="app" aria-labelledby="app-h">
+    <div class="wrap">
+      <div class="grid app-head">
+        <h2 class="span-5" id="app-h">One console for every agent's money</h2>
+        <div class="span-6 start-7 app-head__text">
+          <p>Each agent has its own limits, its own payees and its own freeze switch. Payments over the threshold wait for you. Everything on this screen is read from the vault right now.</p>
+          <p class="more"><a class="link" href="/console">See the console's views</a></p>
         </div>
       </div>
-    </section>
-  </main>
+      <figure class="app-fig fill" data-visual>
+      <div class="win app app-frame ui ui-win" role="group" aria-label="Spendfuse console preview, live data">
+        <div class="win__bar">
+          <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="win__title">Spendfuse console · vault.tw-firewall-demo.testnet</span>
+          <span class="win__spacer"></span>
+          <span class="live" data-state="off" data-app-live>Snapshot, 9 Nov 2026</span>
+        </div>
+        <div class="app__body">
+          <div class="app__list">
+            <div class="app__tabs" aria-hidden="true">
+              <span class="is-on">Agents</span><span>Approvals</span><span>Incidents</span><span>Policy</span><span>Runs</span>
+            </div>
+            <div class="win__body">
+              <ul class="app__rows" data-app-rows>
+                <li class="arow is-on">
+                  <span class="arow__name">demo shopping agent</span>
+                  <span class="arow__id">agent.tw-firewall-demo.testnet</span>
+                  <span class="arow__chip"><span class="chip chip--ok">active</span></span>
+                  <span class="arow__val num">3 NEAR a day</span>
+                </li>
+                <li class="arow"><span class="arow__name">Allowlist</span><span class="arow__id">store.tw-firewall-demo.testnet</span><span class="arow__val num">1</span></li>
+                <li class="arow"><span class="arow__name">Pending approvals</span><span class="arow__id">held over 0.5 NEAR, expire after 24h</span><span class="arow__val num">0</span></li>
+                <li class="arow"><span class="arow__name">Canaries</span><span class="arow__id">planted payee hashes</span><span class="arow__val num">2</span></li>
+                <li class="arow"><span class="arow__name">Guardians</span><span class="arow__id">guardian.tw-firewall-demo.testnet</span><span class="arow__val num">1</span></li>
+                <li class="arow"><span class="arow__name">Blocklist</span><span class="arow__id">blocked payees</span><span class="arow__val num">0</span></li>
+                <li class="arow"><span class="arow__name">Keys</span><span class="arow__id">function-call only: request_payment, report_receiver, self_freeze</span><span class="arow__val num">1</span></li>
+                <li class="arow"><span class="arow__name">Contract 1.0.0</span><span class="arow__id">code_hash GTNcofHt…Etfh</span><span class="arow__val num">testnet</span></li>
+              </ul>
+            </div>
+          </div>
+          <div class="app__open">
+            <div class="win__body">
+              <div class="open__head">
+                <div>
+                  <p class="open__name" data-open-name>demo shopping agent</p>
+                  <p class="open__id">agent.tw-firewall-demo.testnet</p>
+                </div>
+                <span class="chip chip--ok" data-open-status>active</span>
+              </div>
+              <div class="limits">
+                <div class="limit">
+                  <p class="limit__k">Per payment cap</p>
+                  <p class="limit__v num" data-lim-cap>1 NEAR</p>
+                </div>
+                <div class="limit">
+                  <p class="limit__k">Spent, rolling 24h</p>
+                  <p class="limit__v num" data-lim-day>of 3 NEAR</p>
+                  <div class="bar" data-bar-day><i></i></div>
+                </div>
+                <div class="limit">
+                  <p class="limit__k">Payments this hour</p>
+                  <p class="limit__v num" data-lim-hour>of 10</p>
+                  <div class="bar" data-bar-hour><i></i></div>
+                </div>
+                <div class="limit">
+                  <p class="limit__k">Blocks this hour</p>
+                  <p class="limit__v num" data-lim-blocks>of 25, backstop</p>
+                  <div class="bar" data-bar-blocks><i></i></div>
+                </div>
+              </div>
+              <p class="open__label">Policy</p>
+              <dl class="policy" data-policy>
+                <div><dt>max_per_payment</dt><dd>1 NEAR</dd></div>
+                <div><dt>daily_limit</dt><dd>3 NEAR</dd></div>
+                <div><dt>approval_threshold</dt><dd>0.5 NEAR</dd></div>
+                <div><dt>new_payee_limit</dt><dd>0.2 NEAR</dd></div>
+                <div><dt>max_payments_per_hour</dt><dd>10</dd></div>
+                <div><dt>allowlist</dt><dd>store.tw-firewall-demo.testnet</dd></div>
+              </dl>
+              <p class="open__label">Recent incidents</p>
+              <ul class="inc-list inc-list--tight" data-open-inc>
+                <li class="win__msg">Incidents load from the vault when it answers.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </figure>
+    </div>
+  </section>
 
-  <footer class="foot muted small">
-    <span id="updated">not loaded</span>
-    <span>Values from the chain are untrusted and shown as plain text.</span>
-  </footer>
+  <!-- S3 how it works -->
+  <section class="section" id="how" aria-labelledby="how-h">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="how-h">Three checks between your agent and its money</h2>
+        <p class="how-sub">The agent never holds funds. It holds a function-call key that NEAR itself limits to three methods on one contract.</p>
+      </div>
+      <div class="grid how fill">
+        <ol class="steps span-5">
+          <li class="step">
+            <span class="step__n" aria-hidden="true">1</span>
+            <div><h3>Fund the vault, not the agent.</h3>
+            <p>The owner deposits NEAR into vault.tw-firewall-demo.testnet and registers the agent with a policy: caps, a rolling 24h limit, an approval threshold, an allowlist.</p></div>
+          </li>
+          <li class="step">
+            <span class="step__n" aria-hidden="true">2</span>
+            <div><h3>Give the agent a narrow key.</h3>
+            <p>Its key can call request_payment, report_receiver and self_freeze on the vault, with a 1 NEAR gas allowance. The protocol rejects transfers, new keys, other contracts and attached deposits.</p></div>
+          </li>
+          <li class="step">
+            <span class="step__n" aria-hidden="true">3</span>
+            <div><h3>Let the firewall contract decide.</h3>
+            <p>Each request runs the policy in a fixed order. The first match decides: paid, held for your approval, blocked, or tripped and frozen. The model only hears "paid", "refused" or "pending human approval".</p></div>
+          </li>
+        </ol>
+        <figure class="diagram span-6 start-7" data-m-loop>
+          <svg class="flow" viewBox="0 0 560 440" role="img" aria-labelledby="flow-t">
+            <title id="flow-t">The agent's key reaches only the vault. The vault runs seven checks in order, then pays the store, holds the payment for you, or refuses it. A direct transfer from the agent to the store is rejected by the protocol.</title>
+            <!-- edges -->
+            <path class="e e--ink" d="M170 172 H200"/>
+            <path class="e e--ok" d="M380 92 H400"/>
+            <path class="e e--warn" d="M380 222 H400"/>
+            <path class="e e--stop" d="M380 332 H400"/>
+            <path class="e e--dash" d="M95 204 V416 H452"/>
+            <path class="x" d="M456 408 l16 16 M472 408 l-16 16"/>
+            <text class="t t--stop" x="112" y="404">transfer: rejected by protocol</text>
+            <!-- agent -->
+            <rect class="n" x="20" y="140" width="150" height="64" rx="6"/>
+            <path class="key" d="M38 166a6 6 0 1 1 0 .01M44 166h14m-4 0v5m-4-5v4"/>
+            <text class="t t--mono" x="66" y="168">agent.…testnet</text>
+            <text class="t t--sm" x="38" y="190">function-call key</text>
+            <!-- vault -->
+            <rect class="n n--vault" x="200" y="40" width="180" height="350" rx="6"/>
+            <text class="t t--mono" x="216" y="66">vault.…testnet</text>
+            <text class="t t--sm" x="216" y="86">policy, first match decides</text>
+            <g class="stack">
+              <rect class="r" x="214" y="100" width="152" height="32" rx="4"/><text class="t t--row" x="226" y="121">1 frozen</text>
+              <rect class="r" x="214" y="140" width="152" height="32" rx="4"/><text class="t t--row" x="226" y="161">2 canary</text>
+              <rect class="r" x="214" y="180" width="152" height="32" rx="4"/><text class="t t--row" x="226" y="201">3 paused</text>
+              <rect class="r" x="214" y="220" width="152" height="32" rx="4"/><text class="t t--row" x="226" y="241">4 expired</text>
+              <rect class="r" x="214" y="260" width="152" height="32" rx="4"/><text class="t t--row" x="226" y="281">5 hard limits</text>
+              <rect class="r" x="214" y="300" width="152" height="32" rx="4"/><text class="t t--row" x="226" y="321">6 soft signals</text>
+              <rect class="r r--ok" x="214" y="340" width="152" height="32" rx="4"/><text class="t t--row" x="226" y="361">7 allow</text>
+            </g>
+            <!-- outcomes -->
+            <rect class="n n--ok" x="400" y="60" width="140" height="64" rx="6"/>
+            <text class="t t--mono" x="414" y="88">store.…testnet</text>
+            <text class="t t--ok" x="414" y="110">paid</text>
+            <rect class="n n--warn" x="400" y="190" width="140" height="64" rx="6"/>
+            <text class="t t--mono" x="414" y="218">you</text>
+            <text class="t t--warn" x="414" y="240">held for approval</text>
+            <rect class="n n--stop" x="400" y="300" width="140" height="64" rx="6"/>
+            <text class="t t--mono" x="414" y="328">refused</text>
+            <text class="t t--stop" x="414" y="350">blocked or tripped</text>
+            <!-- the one loop: a request travels agent, vault, store -->
+            <circle class="dot" r="5" cx="0" cy="0"/>
+          </svg>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- S4 statement -->
+  <section class="section statement" data-moment="letters-assemble" aria-labelledby="st-h">
+    <div class="wrap">
+      <div class="statement__grid">
+        <div class="statement__text">
+          <h2 class="mo-la__type" id="st-h">The agent key cannot leave the vault.</h2>
+          <p class="mo-la__sub">In the stolen-key run, five escape attempts died at the protocol's access-key layer. No transaction landed, so there is nothing to link. That is the result.</p>
+          <p class="statement__link"><a class="link" href="#proof-stolen-key">Read the stolen-key scenario</a></p>
+        </div>
+        <div class="win statement__log ui ui-log" aria-label="Stolen-key run, from the recorded transcript">
+          <div class="win__bar"><span class="win__title mono">stolen agent key · 5 attempts</span><span class="chip chip--stop">0 landed</span></div>
+          <ol class="slog mono">
+            <li><span class="slog__try">transfer 0.01 NEAR to the attacker</span><span class="slog__res">RequiresFullAccess</span></li>
+            <li><span class="slog__try">call vault.withdraw</span><span class="slog__res">MethodNameMismatch</span></li>
+            <li><span class="slog__try">add a full-access key</span><span class="slog__res">RequiresFullAccess</span></li>
+            <li><span class="slog__try">call another contract</span><span class="slog__res">ReceiverMismatch</span></li>
+            <li><span class="slog__try">attach a deposit to request_payment</span><span class="slog__res">DepositWithFunctionCall</span></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S5 proof -->
+  <section class="section g2 proof" id="proof" aria-labelledby="proof-h">
+    <div class="wrap">
+      <div class="group">
+        <div class="section-head">
+          <h2 id="proof-h">8 scenarios on NEAR testnet, every transaction linked</h2>
+          <p class="proof-sub">Recorded 9 Nov 2026, 04:59:38 to 05:00:59 UTC. A scripted model played the agent. Every payment went through the deployed contract.</p>
+        </div>
+        <div class="grid cards" data-edge-free>
+          <article class="card pcard m-nolift span-3" id="proof-legit" data-scenario="legit">
+            <p class="pcard__top"><span class="pcard__n" aria-hidden="true">1</span><span>normal payment</span><span class="pcard__pass" data-pass>passed</span></p>
+            <div class="pcard__ui ui ui-receipt ui-paid">
+            <h3>Legitimate purchase from the allowlisted shop</h3>
+            <p class="pcard__chip"><span class="chip chip--ok">paid</span></p>
+            <p class="pcard__line">Paid to store.tw-firewall-demo.testnet within every limit.</p>
+            <ul class="txs">
+              <li><span>payment</span><a href="https://testnet.nearblocks.io/txns/ACvP6tWMuqmQ1oAje8drXUbMPg1gThskVFW21SQmtNce" rel="noopener" target="_blank" data-tx="ACvP6tWMuqmQ1oAje8drXUbMPg1gThskVFW21SQmtNce">ACvP6t…Nce</a></li>
+            </ul>
+            </div>
+          </article>
+          <article class="card pcard m-nolift span-3" id="proof-injection" data-scenario="injection">
+            <p class="pcard__top"><span class="pcard__n" aria-hidden="true">2</span><span>attack</span><span class="pcard__pass" data-pass>passed</span></p>
+            <div class="pcard__ui ui ui-receipt ui-held">
+            <h3>Simulated prompt injection in a fetched invoice</h3>
+            <p class="pcard__chip"><span class="chip chip--warn">held, then rejected</span></p>
+            <p class="pcard__line">Escalated for approval, a human rejected it, nothing paid.</p>
+            <ul class="txs">
+              <li><span>payment</span><a href="https://testnet.nearblocks.io/txns/HXToFNZsZxVoKVf2TXtEf5ib95TJkFveprY6oT8boSCV" rel="noopener" target="_blank" data-tx="HXToFNZsZxVoKVf2TXtEf5ib95TJkFveprY6oT8boSCV">HXToFN…CV</a></li>
+              <li><span>owner reject</span><a href="https://testnet.nearblocks.io/txns/AXhRxcogYRkYy7EuvrKcmzSRTfesLwSuECZ7BsE5ugGN" rel="noopener" target="_blank" data-tx="AXhRxcogYRkYy7EuvrKcmzSRTfesLwSuECZ7BsE5ugGN">AXhRxc…GN</a></li>
+            </ul>
+            </div>
+          </article>
+          <article class="card pcard m-nolift span-3" id="proof-salami" data-scenario="salami">
+            <p class="pcard__top"><span class="pcard__n" aria-hidden="true">3</span><span>attack</span><span class="pcard__pass" data-pass>passed</span></p>
+            <div class="pcard__ui ui ui-receipt ui-frozen">
+            <h3>Salami attack: many small payments to fresh wallets</h3>
+            <p class="pcard__chip"><span class="chip chip--trip">auto-frozen</span></p>
+            <p class="pcard__line">1 escalated, 7 refused, auto-frozen after 3 blocks in 1h, nothing paid. For this run the owner set the daily limit 0.3 NEAR above the 24h spend and auto-freeze at 3 blocks (update_policy tx).</p>
+            <ul class="txs">
+              <li><span>update_policy for this run</span><a href="https://testnet.nearblocks.io/txns/jUkiMRyiMmEX1i61kbXHspqPj5NCAanhY6L62hjvySo" rel="noopener" target="_blank" data-tx="jUkiMRyiMmEX1i61kbXHspqPj5NCAanhY6L62hjvySo">jUkiMR…vySo</a></li>
+              <li><span>1st request, held</span><a href="https://testnet.nearblocks.io/txns/2iceRZ7fbwiWDMBA2KDQMDLs4oEzaugCRRgxgD3fZhC2" rel="noopener" target="_blank" data-tx="2iceRZ7fbwiWDMBA2KDQMDLs4oEzaugCRRgxgD3fZhC2">2iceRZ…C2</a></li>
+              <li><span>4th request, froze the agent</span><a href="https://testnet.nearblocks.io/txns/FMtvaDGD5UD6NVtfttTCKS8CDdwexP6nDCsQV29aogye" rel="noopener" target="_blank" data-tx="FMtvaDGD5UD6NVtfttTCKS8CDdwexP6nDCsQV29aogye">FMtvaD…ye</a></li>
+            </ul>
+            </div>
+          </article>
+          <article class="card pcard m-nolift span-3" id="proof-canary" data-scenario="canary">
+            <p class="pcard__top"><span class="pcard__n" aria-hidden="true">4</span><span>attack</span><span class="pcard__pass" data-pass>passed</span></p>
+            <div class="pcard__ui ui ui-receipt ui-tripped">
+            <h3>Canary drill: payment to a planted canary</h3>
+            <p class="pcard__chip"><span class="chip chip--trip">tripped, frozen</span></p>
+            <p class="pcard__line">Tripped, agent frozen with TRIPWIRE, the agent told only "refused".</p>
+            <ul class="txs">
+              <li><span>payment</span><a href="https://testnet.nearblocks.io/txns/2tC28AerbqsP91dJU6s9gtoXnSjUGjHf9AXuJXSMnKU1" rel="noopener" target="_blank" data-tx="2tC28AerbqsP91dJU6s9gtoXnSjUGjHf9AXuJXSMnKU1">2tC28A…U1</a></li>
+            </ul>
+            </div>
+          </article>
+        </div>
+      </div>
+      <div class="group">
+        <div class="grid cards" data-edge-free>
+          <article class="card pcard m-nolift span-3" id="proof-over-threshold" data-scenario="over-threshold">
+            <p class="pcard__top"><span class="pcard__n" aria-hidden="true">5</span><span>normal payment</span><span class="pcard__pass" data-pass>passed</span></p>
+            <div class="pcard__ui ui ui-receipt ui-approved">
+            <h3>Payment over the approval threshold</h3>
+            <p class="pcard__chip"><span class="chip chip--ok">held, then approved</span></p>
+            <p class="pcard__line">Held for approval, paid after the owner approved.</p>
+            <ul class="txs">
+              <li><span>payment</span><a href="https://testnet.nearblocks.io/txns/AF1QAycx5UyXvbXWkax1GjTrKK56Qo7bH5GqXoxdX8n4" rel="noopener" target="_blank" data-tx="AF1QAycx5UyXvbXWkax1GjTrKK56Qo7bH5GqXoxdX8n4">AF1QAy…n4</a></li>
+              <li><span>owner approve</span><a href="https://testnet.nearblocks.io/txns/7vff12X811sC1YxZVrfCidaisgR2XVYiGRRAzLSGckhH" rel="noopener" target="_blank" data-tx="7vff12X811sC1YxZVrfCidaisgR2XVYiGRRAzLSGckhH">7vff12…hH</a></li>
+            </ul>
+            </div>
+          </article>
+          <article class="card pcard m-nolift span-3" id="proof-stolen-key" data-scenario="stolen-key">
+            <p class="pcard__top"><span class="pcard__n" aria-hidden="true">6</span><span>attack</span><span class="pcard__pass" data-pass>passed</span></p>
+            <div class="pcard__ui ui ui-receipt ui-rejected">
+            <h3>Stolen agent key tries to escape the vault</h3>
+            <p class="pcard__chip"><span class="chip chip--stop">rejected by protocol</span></p>
+            <p class="pcard__line">5 attempts rejected at the access-key layer. No tx lands, by design.</p>
+            <ul class="txs">
+              <li><span>No transaction: 5 protocol rejections</span></li>
+            </ul>
+            </div>
+          </article>
+          <article class="card pcard m-nolift span-3" id="proof-bypass-cap" data-scenario="bypass-cap">
+            <p class="pcard__top"><span class="pcard__n" aria-hidden="true">7</span><span>attack</span><span class="pcard__pass" data-pass>passed</span></p>
+            <div class="pcard__ui ui ui-receipt ui-blocked">
+            <h3>Wrapper bypass: raw request over the per-payment cap</h3>
+            <p class="pcard__chip"><span class="chip chip--stop">blocked on chain</span></p>
+            <p class="pcard__line">Blocked by the contract with OVER_PER_PAYMENT_CAP.</p>
+            <ul class="txs">
+              <li><span>raw request</span><a href="https://testnet.nearblocks.io/txns/HdA79d6T33Uyg9pAiKPMJ9xFvPXvzikMP9WcaKPVBn4d" rel="noopener" target="_blank" data-tx="HdA79d6T33Uyg9pAiKPMJ9xFvPXvzikMP9WcaKPVBn4d">HdA79d…4d</a></li>
+            </ul>
+            </div>
+          </article>
+          <article class="card pcard m-nolift span-3" id="proof-missing-receiver" data-scenario="missing-receiver">
+            <p class="pcard__top"><span class="pcard__n" aria-hidden="true">8</span><span>mistake</span><span class="pcard__pass" data-pass>passed</span></p>
+            <div class="pcard__ui ui ui-receipt ui-refused">
+            <h3>Receiver account does not exist</h3>
+            <p class="pcard__chip"><span class="chip chip--stop">refused, rolled back</span></p>
+            <p class="pcard__line">The guard refused; the raw send failed and the callback rolled the accounting back.</p>
+            <ul class="txs">
+              <li><span>raw request</span><a href="https://testnet.nearblocks.io/txns/HLSpWRiKnL67yZavRWmMewUJikN3XKRmrYjHcD21ufzr" rel="noopener" target="_blank" data-tx="HLSpWRiKnL67yZavRWmMewUJikN3XKRmrYjHcD21ufzr">HLSpWR…zr</a></li>
+            </ul>
+            </div>
+          </article>
+        </div>
+        <div class="runrec ui ui-record" aria-label="The recorded run">
+          <dl class="runrec__stats">
+            <div><dt>Scenarios passed</dt><dd>8 of 8</dd></div>
+            <div><dt>Transactions on chain</dt><dd>15</dd></div>
+            <div><dt>Run time</dt><dd>81 s</dd></div>
+            <div><dt>Agent</dt><dd>scripted</dd></div>
+          </dl>
+          <p class="runline"><span><span class="runline__k">Run id</span> <span class="mono">live-run-2026-11-09T04-59-38-380Z</span></span><span><span class="runline__k">Contract code_hash</span> <span class="mono">GTNcofHtGDJRRXVWdmzaq7C44442yV9m7qZKF329Etfh</span></span><span class="runline__more"><a class="link" href="/console#runs/live-run-2026-11-09T04-59-38-380Z">Open in the console</a></span></p>
+          <p class="runrec__note">The full transcript, every tx hash included, is in docs/proofs/ in the repository. The agent was a scripted model, not a live LLM.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S6 security model -->
+  <section class="section" id="security" aria-labelledby="sec-h">
+    <div class="wrap">
+      <div class="grid sec">
+        <div class="span-5 sec__text">
+          <h2 id="sec-h">What the firewall enforces, and what only advises</h2>
+          <p>The contract is the only part that can say no to money. The off-chain guard probes canaries, checks payees and warns, and anyone holding the agent key can skip it.</p>
+          <ul class="rows rows--spec sec__rows">
+            <li><span class="rows__name">Enforced on chain</span><p>Caps, rolling 24h limit, hourly rate, allowlist, blocklist, approval queue, canaries, auto-freeze.</p></li>
+            <li><span class="rows__name">Advisory, off chain</span><p>Guard and scout checks. They depend on FastNEAR and NearBlocks.</p></li>
+            <li><span class="rows__name">Owner</span><p>Full trust: approves, unfreezes, withdraws, changes policy. One full-access key plus 1 yoctoNEAR per call.</p></li>
+            <li><span class="rows__name">Guardians</span><p>Can only tighten: freeze, pause, reject, block, add canaries.</p></li>
+          </ul>
+        </div>
+        <figure class="span-6 start-7 order">
+          <ol class="order__list ui ui-order">
+            <li><span class="order__n" aria-hidden="true">1</span><span class="order__k">frozen</span><span class="chip chip--stop">refused</span></li>
+            <li><span class="order__n" aria-hidden="true">2</span><span class="order__k">canary</span><span class="chip chip--trip">tripped, frozen</span></li>
+            <li><span class="order__n" aria-hidden="true">3</span><span class="order__k">paused</span><span class="chip chip--stop">refused</span></li>
+            <li><span class="order__n" aria-hidden="true">4</span><span class="order__k">expired</span><span class="chip chip--stop">refused</span></li>
+            <li><span class="order__n" aria-hidden="true">5</span><span class="order__k">hard limits<small>self payment, blocklist, zero amount, allowlist, per-payment cap, hourly rate, daily limit, vault balance. Counts toward auto-freeze unless only the vault's own balance caused it.</small></span><span class="chip chip--stop">blocked</span></li>
+            <li><span class="order__n" aria-hidden="true">6</span><span class="order__k">soft signals<small>reported payee, new payee, over threshold. Held for approval with a 24h expiry; blocked when the queue is full.</small></span><span class="chip chip--warn">held 24h</span></li>
+            <li><span class="order__n" aria-hidden="true">7</span><span class="order__k">allow</span><span class="chip chip--ok">paid</span></li>
+          </ol>
+          <figcaption>First match decides. Auto-freeze after the configured number of blocks in an hour: 25 at most, and 25 when unset.</figcaption>
+          <div class="codes ui ui-codes">
+            <p class="codes__k">All 17 reason codes the contract returns: <span class="codes__key codes__key--stop">blocked</span> <span class="codes__key codes__key--warn">held</span> <span class="codes__key codes__key--trip">tripped</span></p>
+            <ul class="codes__list" aria-label="The contract's reason codes">
+              <li data-tone="stop">OVER_PER_PAYMENT_CAP</li><li data-tone="stop">OVER_DAILY_LIMIT</li><li data-tone="stop">RATE_LIMITED</li><li data-tone="stop">NOT_ALLOWLISTED</li><li data-tone="stop">BLOCKLISTED</li><li data-tone="stop">SELF_PAYMENT</li><li data-tone="stop">ZERO_AMOUNT</li><li data-tone="stop">POLICY_EXPIRED</li><li data-tone="stop">INSUFFICIENT_VAULT_BALANCE</li><li data-tone="stop">TOO_MANY_PENDING</li><li data-tone="stop">UNKNOWN_AGENT</li><li data-tone="stop">AGENT_FROZEN</li><li data-tone="stop">VAULT_PAUSED</li><li data-tone="warn">NEW_PAYEE</li><li data-tone="warn">NEEDS_APPROVAL</li><li data-tone="warn">REPORTED_RECEIVER</li><li data-tone="trip">TRIPWIRE</li>
+            </ul>
+          </div>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- S7 code -->
+  <section class="section" id="code" aria-labelledby="code-h">
+    <div class="wrap grid code-sec">
+      <div class="span-5 code-sec__text">
+        <h2 id="code-h">Your agent calls one method</h2>
+        <p>The TypeScript client in src/lib/spendfuse.ts wraps every contract call and decodes the result. Native NEAR only.</p>
+        <table class="ret">
+          <caption>What request_payment gives back</caption>
+          <thead><tr><th scope="col">result.status</th><th scope="col">What your agent should do</th></tr></thead>
+          <tbody>
+            <tr><td><span class="chip chip--ok mono">paid</span></td><td>Carry on. The transfer settled.</td></tr>
+            <tr><td><span class="chip chip--warn mono">pending_approval</span></td><td>Wait. Only the owner can approve it; the owner or a guardian can reject it, and it expires after 24h.</td></tr>
+            <tr><td><span class="chip chip--stop mono">blocked</span></td><td>Stop and read result.reasons. Do not retry the same payment.</td></tr>
+            <tr><td><span class="chip chip--trip mono">tripped</span></td><td>Stop. A canary was hit and the agent is frozen until the owner unfreezes it.</td></tr>
+          </tbody>
+        </table>
+        <div class="verify">
+          <p class="verify__k">Verify it yourself</p>
+          <div class="verify__row ui ui-cmd">
+            <code class="verify__cmd" data-copy-src>npm ci &amp;&amp; npm test &amp;&amp; npm run demo:dry</code>
+            <button class="copy" type="button" data-copy="npm ci &amp;&amp; npm test &amp;&amp; npm run demo:dry" aria-label="Copy the verify command"><svg class="copy__idle" viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"/><path d="M10.5 5V3.5A1.5 1.5 0 0 0 9 2H3.5A1.5 1.5 0 0 0 2 3.5V9a1.5 1.5 0 0 0 1.5 1.5H5"/></svg><svg class="copy__done" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3 3 7-7"/></svg><span class="copy__label">Copy</span></button>
+          </div>
+        </div>
+      </div>
+      <div class="span-6 start-7 win codewin ui ui-win">
+        <div class="win__bar">
+          <div class="tabs codetabs" role="tablist" aria-label="Client examples">
+            <button class="tab" role="tab" type="button" id="tab-agent" aria-selected="true" aria-controls="p-agent">Agent</button>
+            <button class="tab" role="tab" type="button" id="tab-owner" aria-selected="false" aria-controls="p-owner" tabindex="-1">Owner</button>
+            <button class="tab" role="tab" type="button" id="tab-guardian" aria-selected="false" aria-controls="p-guardian" tabindex="-1">Guardian</button>
+          </div>
+          <span class="win__spacer"></span>
+          <button class="copy" type="button" data-copy-panel aria-label="Copy the code in this tab"><svg class="copy__idle" viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"/><path d="M10.5 5V3.5A1.5 1.5 0 0 0 9 2H3.5A1.5 1.5 0 0 0 2 3.5V9a1.5 1.5 0 0 0 1.5 1.5H5"/></svg><svg class="copy__done" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3 3 7-7"/></svg><span class="copy__label">Copy</span></button>
+        </div>
+        <div class="codewin__panels">
+<div role="tabpanel" id="p-agent" aria-labelledby="tab-agent" tabindex="0"><p class="codewin__file">agent.ts</p><pre class="code"><code><span class="k">import</span> { agentApi, NEAR } <span class="k">from</span> <span class="s">'./src/lib/spendfuse.ts'</span>;
+<span class="k">import</span> { makeProvider, signerFromSecret } <span class="k">from</span> <span class="s">'./src/lib/near.ts'</span>;
+
+<span class="k">const</span> agent = <span class="f">agentApi</span>(
+  { accountId: <span class="s">'agent.tw-firewall-demo.testnet'</span>,
+    provider: <span class="f">makeProvider</span>(),
+    signer: <span class="f">signerFromSecret</span>(<span class="f">loadAgentKey</span>()) },  <span class="c">// your code: the function-call key only</span>
+  { vaultId: <span class="s">'vault.tw-firewall-demo.testnet'</span> },
+);
+
+<span class="k">const</span> { result } = <span class="k">await</span> agent.<span class="f">requestPayment</span>({
+  receiver_id: <span class="s">'store.tw-firewall-demo.testnet'</span>,
+  amount: <span class="n">3n</span> * NEAR / <span class="n">10n</span>,                          <span class="c">// 0.3 NEAR</span>
+  memo: <span class="s">'order 1042'</span>,
+});
+
+<span class="c">// result.status: 'paid' | 'pending_approval' | 'blocked' | 'tripped' | 'expired' | 'transfer_failed'</span>
+<span class="k">if</span> (result?.frozen) <span class="k">await</span> <span class="f">notifyOwner</span>(result.reasons);  <span class="c">// your code</span></code></pre></div>
+<div role="tabpanel" id="p-owner" aria-labelledby="tab-owner" tabindex="0" hidden><p class="codewin__file">owner.ts</p><pre class="code"><code><span class="k">import</span> { ownerApi, NEAR } <span class="k">from</span> <span class="s">'./src/lib/spendfuse.ts'</span>;
+<span class="k">import</span> { makeProvider, signerFromSecret } <span class="k">from</span> <span class="s">'./src/lib/near.ts'</span>;
+
+<span class="k">const</span> owner = <span class="f">ownerApi</span>(
+  { accountId: <span class="s">'tw-firewall-demo.testnet'</span>, provider: <span class="f">makeProvider</span>(),
+    signer: <span class="f">signerFromSecret</span>(<span class="f">loadOwnerKey</span>()) },  <span class="c">// your code: the full-access key</span>
+  { vaultId: <span class="s">'vault.tw-firewall-demo.testnet'</span> },
+);
+
+<span class="k">await</span> owner.<span class="f">registerAgent</span>(<span class="s">'agent.tw-firewall-demo.testnet'</span>, <span class="s">'demo shopping agent'</span>, {
+  max_per_payment: NEAR, daily_limit: <span class="n">3n</span> * NEAR,
+  approval_threshold: NEAR / <span class="n">2n</span>, new_payee_limit: NEAR / <span class="n">5n</span>,
+  max_payments_per_hour: <span class="n">10</span>, allowlist_only: <span class="k">false</span>,
+  allowlist: <span class="p">[</span><span class="s">'store.tw-firewall-demo.testnet'</span><span class="p">]</span>, auto_freeze_after_blocks: <span class="n">3</span>,  <span class="c">// demo setup leaves this unset (25)</span>
+});
+
+<span class="k">await</span> owner.<span class="f">approve</span>(<span class="n">7n</span>);  <span class="c">// a request_id from the approval queue</span>
+<span class="k">await</span> owner.<span class="f">unfreezeAgent</span>(<span class="s">'agent.tw-firewall-demo.testnet'</span>);</code></pre></div>
+<div role="tabpanel" id="p-guardian" aria-labelledby="tab-guardian" tabindex="0" hidden><p class="codewin__file">guardian.ts</p><pre class="code"><code><span class="k">import</span> { guardianApi } <span class="k">from</span> <span class="s">'./src/lib/spendfuse.ts'</span>;
+<span class="k">import</span> { canaryHash } <span class="k">from</span> <span class="s">'./src/lib/canary.ts'</span>;
+<span class="k">import</span> { makeProvider, signerFromSecret } <span class="k">from</span> <span class="s">'./src/lib/near.ts'</span>;
+
+<span class="k">const</span> guardian = <span class="f">guardianApi</span>(
+  { accountId: <span class="s">'guardian.tw-firewall-demo.testnet'</span>, provider: <span class="f">makeProvider</span>(),
+    signer: <span class="f">signerFromSecret</span>(<span class="f">loadGuardianKey</span>()) },  <span class="c">// your code</span>
+  { vaultId: <span class="s">'vault.tw-firewall-demo.testnet'</span> },
+);
+
+<span class="c">// a guardian can only tighten: freeze, pause, reject, block, add canaries</span>
+<span class="k">await</span> guardian.<span class="f">freezeAgent</span>(<span class="s">'agent.tw-firewall-demo.testnet'</span>, <span class="s">'suspicious invoice'</span>);
+<span class="k">await</span> guardian.<span class="f">pause</span>(<span class="s">'incident'</span>);
+<span class="k">await</span> guardian.<span class="f">addCanaries</span>(<span class="p">[</span><span class="f">canaryHash</span>(plantedPayeeId)<span class="p">]</span>);  <span class="c">// your code: a random 64-hex id</span></code></pre></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S8 limits -->
+  <section class="section lim-sec" id="limits" aria-labelledby="lim-h">
+    <div class="wrap">
+      <div class="grid lim-head">
+        <h2 class="span-5" id="lim-h">What Spendfuse does not stop yet</h2>
+        <p class="span-6 start-7 lim-head__p">Read this before you put real money behind an agent. Mainnet is not deployed and the contract is not audited.</p>
+      </div>
+      <dl class="lim grid">
+        <div class="span-6"><dt>Salami under the new-payee limit</dt><dd>Bounded, not stopped. Without allowlist_only, a stolen key can pay fresh payees up to 0.2 NEAR each without approval: about 2.85 to 3 NEAR per rolling 24h with the demo policy, every 24h, until you freeze it.</dd></div>
+        <div class="span-6"><dt>The owner key</dt><dd>Total trust. Whoever holds it can approve, unfreeze, withdraw and change the policy.</dd></div>
+        <div class="span-6"><dt>The vault's own full-access key</dt><dd>Still present on testnet: lockdown has not been run. Its holder can redeploy the contract or move the balance.</dd></div>
+        <div class="span-6"><dt>Canary hashes</dt><dd>Unsalted, so anyone with a candidate id can check it in public state. Ids are random 64-hex accounts, and a tripped canary's id becomes public. Canaries only catch an attacker who tries to pay them.</dd></div>
+        <div class="span-6"><dt>The off-chain guard</dt><dd>Advisory. Anyone with the agent key can skip it, its canary probe depends on the contract's storage layout, and the scout depends on FastNEAR and NearBlocks.</dd></div>
+        <div class="span-6"><dt>Guardians</dt><dd>Can pause, freeze and reject everything, and can lock vault storage with up to 1000 blocklist entries and 1000 canary hashes.</dd></div>
+        <div class="span-6"><dt>Reports</dt><dd>Can be used to slow payments to a payee by sending them to the approval queue. They cannot move funds.</dd></div>
+        <div class="span-6"><dt>Environmental blocks</dt><dd>A block caused by the vault's own state, such as a low balance, never counts toward auto-freeze.</dd></div>
+        <div class="span-6"><dt>The proof run</dt><dd>A scripted model played the agent. No live LLM was in the loop.</dd></div>
+        <div class="span-6"><dt>Scope</dt><dd>Native NEAR only, no fungible tokens. Testnet only. Not audited.</dd></div>
+      </dl>
+      <p class="lim__last"><a class="link" href="https://github.com/stdevMac/spendfuse/blob/main/docs/THREAT-MODEL.md" rel="noopener">Full threat model</a></p>
+    </div>
+  </section>
+
+  <!-- S9 open source -->
+  <section class="section" id="source" aria-labelledby="src-h">
+    <div class="wrap grid oss">
+      <div class="span-5 oss__text">
+        <h2 id="src-h">Read the Spendfuse source, run it, check the deployed code</h2>
+        <p>MIT licensed. One Rust contract, a TypeScript client, guard, scout and this console. All code was written by AI coding agents (Claude Code), directed by the human author.</p>
+        <ul class="rows rows--spec">
+          <li><span class="rows__name">Contract</span><p class="mono">contract/src/lib.rs, 77 unit tests</p></li>
+          <li><span class="rows__name">Client</span><p class="mono">src/lib/spendfuse.ts</p></li>
+          <li><span class="rows__name">Guard and scout</span><p class="mono">src/agent/guard.ts, src/scout/</p></li>
+          <li><span class="rows__name">Recorded runs</span><p class="mono">docs/proofs/</p></li>
+          <li><span class="rows__name">Deployed code</span><p><a class="oss__a" href="https://github.com/stdevMac/spendfuse#check-that-the-deployed-code-is-this-code" rel="noopener"><span class="mono">code_hash GTNcofHt…Etfh</span> matches a reproducible build</a></p></li>
+        </ul>
+        <p class="more"><a class="link" href="https://github.com/stdevMac/spendfuse" rel="noopener">Read the source on GitHub</a></p>
+      </div>
+      <div class="span-6 start-7 win term ui ui-win">
+        <div class="win__bar">
+          <span class="win__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="win__title">spendfuse · zsh</span>
+        </div>
+<pre class="code term__body"><code><span class="p">$</span> <span class="f">npm ci</span>
+<span class="p">$</span> <span class="f">npm test</span>
+<span class="c">ℹ fail 0</span>
+<span class="p">$</span> <span class="f">npm run demo:dry</span>
+Spendfuse attack demo - DRY RUN (fake chain, nothing sent) - model: scripted
+  <span class="s">✓ PASS</span> 1 paid
+  <span class="c">...</span>
+  <span class="s">✓ PASS</span> 1 escalated, 7 refused, 1 auto_frozen; agent frozen
+    (AUTO_FREEZE: 3 blocked payment attempts within 1h)
+8/8 scenarios behaved as expected
+<span class="p">$</span> <span class="f">npm run test:contract</span>
+test result: ok. 77 passed; 0 failed</code></pre>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer closing footer--dark" id="contact">
+  <div class="wrap">
+    <div class="closing__cta close--word">
+      <div class="section-head--split">
+        <div>
+          <h2 id="close-h">Put a limit between your agent and your money</h2>
+          <p class="t-lead">Open the console to watch the vault decide, or clone the repo and run the eight scenarios yourself.</p>
+        </div>
+        <div class="btn-row">
+          <a class="btn btn--primary" href="/console">Open the live console<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+          <a class="btn btn--secondary" href="https://github.com/stdevMac/spendfuse" rel="noopener">Read the source on GitHub</a>
+        </div>
+      </div>
+      <p class="close__word" aria-hidden="true">Spendfuse</p>
+    </div>
+    <div class="closing__links">
+      <div class="grid">
+        <div class="span-4 stack-4">
+          <a class="nav__logo" href="#top"><span class="mark" data-mark="dots" aria-hidden="true"></span>Spendfuse</a>
+          <p class="footer__lede">A spending firewall for AI agents, enforced by a NEAR contract.</p>
+        </div>
+        <div class="span-2 footer__col">
+          <h3>Product</h3>
+          <ul><li><a href="/console">Console</a></li><li><a href="#proof">Proof</a></li><li><a href="#limits">Limits</a></li></ul>
+        </div>
+        <div class="span-3 footer__col">
+          <h3>Source</h3>
+          <ul><li><a href="https://github.com/stdevMac/spendfuse" rel="noopener">GitHub</a></li><li><a href="https://github.com/stdevMac/spendfuse/blob/main/docs/THREAT-MODEL.md" rel="noopener">Threat model</a></li><li><a href="https://github.com/stdevMac/spendfuse/blob/main/docs/ARCHITECTURE.md" rel="noopener">Architecture</a></li><li><a href="https://github.com/stdevMac/spendfuse#readme" rel="noopener">README</a></li></ul>
+        </div>
+        <div class="span-3 footer__col">
+          <h3>Chain</h3>
+          <ul><li><a href="https://testnet.nearblocks.io/address/vault.tw-firewall-demo.testnet" rel="noopener">Vault on NearBlocks</a></li><li><a href="https://testnet.nearblocks.io/txns/GGGu5tUBu5AnjvXpvRTvKLsiK5cHvNsiw43Pr44KbkTE" rel="noopener">Deploy tx</a></li></ul>
+        </div>
+      </div>
+      <div class="footer__legal">
+        <p>MIT licence · Hackathon build · NEAR testnet · Not audited · Code written by Claude Code, directed by the human author.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<nav class="actionbar" aria-label="Quick actions"><a class="btn btn--primary" href="/console">Open the live console</a></nav>
+
+<script type="module" src="/assets/kit/system.js"></script>
+<script type="module" src="/assets/kit/motion/motion.js"></script>
+<script type="module" src="/assets/landing.js"></script>
 </body>
 </html>

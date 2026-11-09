@@ -138,10 +138,17 @@ export function createHandler(opts: HandlerOptions): Handler {
     throw new HttpError(404, 'no such route');
   }
 
+  const PAGE_ROUTES: Record<string, string> = { '/': '/index.html', '/console': '/console.html', '/console/': '/console.html' };
+
   async function staticFile(request: Request): Promise<Response> {
     if (request.method !== 'GET' && request.method !== 'HEAD') throw new HttpError(405, 'method not allowed');
     if (!opts.assets) throw new HttpError(404, 'not found');
-    const res = await opts.assets.fetch(request);
+    // the landing is "/", the console "/console": the assets binding is asked for the file itself (wrangler.jsonc
+    // sets html_handling "none", so nothing is left to Cloudflare's trailing-slash rules)
+    const url = new URL(request.url);
+    const page = PAGE_ROUTES[url.pathname];
+    const req = page ? new Request(new URL(page + url.search, url), request) : request;
+    const res = await opts.assets.fetch(req);
     const headers = new Headers(res.headers);
     for (const [k, v] of Object.entries(SECURITY_HEADERS)) headers.set(k, v);
     if (!headers.has('cache-control')) headers.set('cache-control', 'no-cache');

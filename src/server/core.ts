@@ -232,11 +232,11 @@ export function runSummary(id: string, size: number, mtimeMs: number, parsed: un
   if (parsed === null) row.invalid = true;
   else if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
     const j = parsed as Record<string, unknown>;
-    for (const k of ['title', 'name', 'scenario', 'mode', 'startedAt', 'started_at', 'outcome', 'result']) {
+    for (const k of ['title', 'name', 'scenario', 'mode', 'startedAt', 'started_at', 'outcome', 'result', 'dryRun', 'llm', 'passed', 'total', 'pass']) {
       const v = j[k];
       if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') row[k] = typeof v === 'string' ? v.slice(0, 200) : v;
     }
-    const steps = ['steps', 'events', 'timeline', 'entries'].map((k) => j[k]).find(Array.isArray);
+    const steps = ['steps', 'events', 'timeline', 'entries', 'scenarios'].map((k) => j[k]).find(Array.isArray);
     if (steps) row.count = (steps as unknown[]).length;
   }
   return row;

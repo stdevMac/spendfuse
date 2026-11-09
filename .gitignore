@@ -23,3 +23,6 @@ dist/
 # cloudflare wrangler local state
 .wrangler/
 .dev.vars
+
+# design skill working files
+.taste-skill/

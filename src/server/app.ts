@@ -49,6 +49,7 @@ const CONTENT_TYPES: Record<string, string> = {
   '.png': 'image/png',
   '.ico': 'image/x-icon',
   '.txt': 'text/plain; charset=utf-8',
+  '.woff2': 'font/woff2',
 };
 
 export const MAX_BODY = 4096;
@@ -352,7 +353,7 @@ export function createDashboard(opts: DashboardOptions): Promise<Dashboard> {
     if (decoded.includes('\0') || decoded.includes('\\')) throw new HttpError(400, 'bad path');
     const segs = decoded.split('/');
     if (segs.some((s) => s === '..' || (s.startsWith('.') && s !== ''))) throw new HttpError(403, 'forbidden');
-    const rel = decoded === '/' ? 'index.html' : decoded.replace(/^\/+/, '');
+    const rel = decoded === '/' ? 'index.html' : decoded === '/console' || decoded === '/console/' ? 'console.html' : decoded.replace(/^\/+/, '');
     const file = resolve(webRoot, rel);
     if (!file.startsWith(webRoot + sep)) throw new HttpError(403, 'forbidden');
     const type = CONTENT_TYPES[extname(file).toLowerCase()];
